@@ -103,20 +103,38 @@ async function handleFirebaseRequest(request) {
     
     // If it's a POST request (survey submission), queue it for background sync
     if (request.method === 'POST') {
-      await queueSurveyForSync(request);
-      
-      // Return a success response to the app
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          offline: true,
-          message: 'Survey queued for sync when online' 
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      try {
+        await queueSurveyForSync(request);
+        
+        // Return a success response to the app
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            offline: true,
+            message: 'Enquête mise en file d\'attente pour synchronisation' 
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      } catch (queueError) {
+        console.error('Failed to queue survey:', queueError);
+        
+        // Return error response if queueing fails
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            offline: true,
+            error: 'Impossible de sauvegarder l\'enquête hors ligne',
+            message: 'Veuillez réessayer quand vous êtes en ligne' 
+          }),
+          {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
     }
 
     // For GET requests, try to return cached data or fail gracefully
@@ -235,17 +253,24 @@ async function queueSurveyForSync(request) {
     // Store in IndexedDB for background sync
     const db = await openIndexedDB();
     const tx = db.transaction(['syncQueue'], 'readwrite');
-    await tx.objectStore('syncQueue').add(surveyData);
+    const store = tx.objectStore('syncQueue');
+    
+    // Use put instead of add to avoid duplicate key errors
+    await store.put(surveyData);
     
     console.log('Survey queued for background sync:', surveyData.id);
 
-    // Register for background sync
-    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-      const registration = await navigator.serviceWorker.ready;
-      await registration.sync.register('survey-sync');
+    // Register for background sync if available
+    try {
+      if (self.registration && 'sync' in self.registration) {
+        await self.registration.sync.register('survey-sync');
+      }
+    } catch (syncError) {
+      console.warn('Background sync registration failed:', syncError);
     }
   } catch (error) {
     console.error('Failed to queue survey for sync:', error);
+    throw error; // Re-throw to let caller handle
   }
 }
 
@@ -265,19 +290,31 @@ async function syncPendingSurveys() {
     const store = tx.objectStore('syncQueue');
     const surveys = await store.getAll();
 
-    console.log(`Found ${surveys.length} surveys to sync`);
+    // Ensure surveys is an array
+    const surveysArray = Array.isArray(surveys) ? surveys : [];
+    console.log(`Found ${surveysArray.length} surveys to sync`);
 
-    for (const surveyData of surveys) {
+    for (const surveyData of surveysArray) {
       try {
+        // Validate survey data structure
+        if (!surveyData || !surveyData.url || !surveyData.method) {
+          console.warn('Invalid survey data structure:', surveyData);
+          continue;
+        }
+
         const response = await fetch(surveyData.url, {
           method: surveyData.method,
-          headers: surveyData.headers,
+          headers: surveyData.headers || {},
           body: surveyData.body
         });
 
         if (response.ok) {
           console.log('Survey synced successfully:', surveyData.id);
-          await store.delete(surveyData.id);
+          
+          // Create a new transaction for deletion since the original might be closed
+          const deleteTx = db.transaction(['syncQueue'], 'readwrite');
+          const deleteStore = deleteTx.objectStore('syncQueue');
+          await deleteStore.delete(surveyData.id);
           
           // Notify clients of successful sync
           notifyClients('survey-synced', { id: surveyData.id });
@@ -296,18 +333,34 @@ async function syncPendingSurveys() {
 // Open IndexedDB for sync queue
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('SurveyAppSync', 1);
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('syncQueue')) {
-        const store = db.createObjectStore('syncQueue', { keyPath: 'id' });
-        store.createIndex('timestamp', 'timestamp');
-      }
-    };
+    try {
+      const request = indexedDB.open('SurveyAppSync', 1);
+      
+      request.onerror = () => {
+        console.error('IndexedDB open error:', request.error);
+        reject(request.error || new Error('Failed to open IndexedDB'));
+      };
+      
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+      
+      request.onupgradeneeded = (event) => {
+        try {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains('syncQueue')) {
+            const store = db.createObjectStore('syncQueue', { keyPath: 'id' });
+            store.createIndex('timestamp', 'timestamp');
+          }
+        } catch (error) {
+          console.error('IndexedDB upgrade error:', error);
+          reject(error);
+        }
+      };
+    } catch (error) {
+      console.error('IndexedDB initialization error:', error);
+      reject(error);
+    }
   });
 }
 
@@ -350,16 +403,21 @@ async function getSyncStatus() {
   try {
     const db = await openIndexedDB();
     const tx = db.transaction(['syncQueue'], 'readonly');
-    const surveys = await tx.objectStore('syncQueue').getAll();
+    const store = tx.objectStore('syncQueue');
+    const surveys = await store.getAll();
+    
+    // Ensure surveys is an array
+    const surveysArray = Array.isArray(surveys) ? surveys : [];
     
     return {
-      pendingCount: surveys.length,
-      surveys: surveys.map(s => ({
-        id: s.id,
-        timestamp: s.timestamp
+      pendingCount: surveysArray.length,
+      surveys: surveysArray.map(s => ({
+        id: s.id || 'unknown',
+        timestamp: s.timestamp || Date.now()
       }))
     };
   } catch (error) {
+    console.error('Error getting sync status:', error);
     return { pendingCount: 0, surveys: [], error: error.message };
   }
 }

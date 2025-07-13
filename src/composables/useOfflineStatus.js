@@ -92,20 +92,23 @@ export function useOfflineStatus() {
 
   // Get sync status from service worker
   const updateSyncStatus = async () => {
-    if (!swRegistration) return
+    if (!swRegistration || !swRegistration.active) return
 
     try {
       const messageChannel = new MessageChannel()
       
       const response = await new Promise((resolve) => {
         messageChannel.port1.onmessage = (event) => {
-          resolve(event.data)
+          resolve(event.data || { pendingCount: 0 })
         }
         
-        swRegistration.active?.postMessage(
-          { type: 'GET_SYNC_STATUS' },
-          [messageChannel.port2]
-        )
+        // Only post message if service worker is active
+        if (swRegistration.active) {
+          swRegistration.active.postMessage(
+            { type: 'GET_SYNC_STATUS' },
+            [messageChannel.port2]
+          )
+        }
         
         // Timeout after 2 seconds
         setTimeout(() => resolve({ pendingCount: 0 }), 2000)
@@ -115,13 +118,14 @@ export function useOfflineStatus() {
       syncStatus.syncError = response.error || null
     } catch (error) {
       console.error('Failed to get sync status:', error)
+      syncStatus.syncError = 'Erreur de statut de synchronisation'
     }
   }
 
   // Force manual sync
   const forceSyncNow = async () => {
-    if (!swRegistration || !isOnline.value) {
-      return { success: false, error: 'No connection or service worker' }
+    if (!swRegistration || !swRegistration.active || !isOnline.value) {
+      return { success: false, error: 'Pas de connexion ou service worker inactif' }
     }
 
     try {
@@ -132,27 +136,34 @@ export function useOfflineStatus() {
       
       const response = await new Promise((resolve) => {
         messageChannel.port1.onmessage = (event) => {
-          resolve(event.data)
+          resolve(event.data || { success: false, error: 'Réponse invalide' })
         }
         
-        swRegistration.active?.postMessage(
-          { type: 'FORCE_SYNC' },
-          [messageChannel.port2]
-        )
+        if (swRegistration.active) {
+          swRegistration.active.postMessage(
+            { type: 'FORCE_SYNC' },
+            [messageChannel.port2]
+          )
+        } else {
+          resolve({ success: false, error: 'Service worker inactif' })
+        }
         
         // Timeout after 10 seconds
-        setTimeout(() => resolve({ success: false, error: 'Timeout' }), 10000)
+        setTimeout(() => resolve({ success: false, error: 'Timeout de synchronisation' }), 10000)
       })
 
       if (response.success) {
         await updateSyncStatus()
         syncStatus.lastSync = new Date().toISOString()
+      } else {
+        syncStatus.syncError = response.error || 'Erreur de synchronisation inconnue'
       }
 
       return response
     } catch (error) {
-      syncStatus.syncError = error.message
-      return { success: false, error: error.message }
+      const errorMessage = 'Erreur lors de la synchronisation'
+      syncStatus.syncError = errorMessage
+      return { success: false, error: errorMessage }
     } finally {
       syncStatus.isSyncing = false
     }
