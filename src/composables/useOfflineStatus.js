@@ -61,8 +61,16 @@ export function useOfflineStatus() {
     }
   }
 
-  // Listen for PWA install prompt
+  // Listen for PWA install prompt (mobile only)
   const handleBeforeInstallPrompt = (e) => {
+    // Only show install prompt on mobile devices
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    
+    if (!isMobile) {
+      e.preventDefault()
+      return
+    }
+    
     e.preventDefault()
     deferredPrompt = e
     isInstallable.value = true
