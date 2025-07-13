@@ -15,17 +15,10 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import { useOfflineData } from '../composables/useOfflineData.js';
 
+const { getCommunes, searchCommunes, loadingState } = useOfflineData();
 const insee = ref([]);
-
-onMounted(async () => {
-  try {
-    const response = await fetch('/output.json');
-    insee.value = await response.json();
-  } catch (error) {
-    console.error('Error loading insee data:', error);
-  }
-});
 
 const props = defineProps({
   modelValue: String,
@@ -39,29 +32,30 @@ const communeInput = ref('');
 const showDropdown = ref(false);
 const filteredCommunes = ref([]);
 
-const search = () => {
-  if ((postalCodeInput.value.length < 2 && communeInput.value.length < 2) || !insee.value.length) {
+const search = async () => {
+  if (postalCodeInput.value.length < 2 && communeInput.value.length < 2) {
     showDropdown.value = false;
     return;
   }
 
-  filteredCommunes.value = insee.value.filter(item => {
-    if (!item) return false;
+  try {
+    // Use the offline-first search function
+    filteredCommunes.value = await searchCommunes(
+      communeInput.value,
+      postalCodeInput.value,
+      100
+    );
 
-    const commune = item.COMMUNE ? item.COMMUNE.toLowerCase() : '';
-    const postalCode = item['CODE POSTAL'] ? item['CODE POSTAL'].toString() : '';
+    showDropdown.value = filteredCommunes.value.length > 0;
 
-    const postalCodeMatch = postalCode.startsWith(postalCodeInput.value);
-    const communeMatch = commune.includes(communeInput.value.toLowerCase());
-
-    return postalCodeMatch && communeMatch;
-  }).slice(0, 100);
-
-  showDropdown.value = filteredCommunes.value.length > 0;
-
-  // Emit the current inputs as the selected values
-  emit('update:modelValue', `${communeInput.value}`);
-  emit('update:postalCodePrefix', postalCodeInput.value);
+    // Emit the current inputs as the selected values
+    emit('update:modelValue', `${communeInput.value}`);
+    emit('update:postalCodePrefix', postalCodeInput.value);
+  } catch (error) {
+    console.error('Error searching communes:', error);
+    filteredCommunes.value = [];
+    showDropdown.value = false;
+  }
 };
 
 const selectCommune = (item) => {
@@ -76,12 +70,13 @@ const selectCommune = (item) => {
   }
 };
 
-watch(() => props.modelValue, (newVal) => {
+watch(() => props.modelValue, async (newVal) => {
   if (newVal && typeof newVal === 'string') {
     const parts = newVal.split(' - ');
     communeInput.value = parts[0] || '';
     if (parts.length > 1 && !postalCodeInput.value) {
-        const matchedCommune = insee.value.find(i => i['CODE INSEE'] === parts[1]);
+        const communes = await getCommunes();
+        const matchedCommune = communes.find(i => i['CODE INSEE'] === parts[1]);
         if (matchedCommune && matchedCommune['CODE POSTAL']) {
             postalCodeInput.value = matchedCommune['CODE POSTAL'].toString();
         }

@@ -1,14 +1,30 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import Constructor from './components/Constructor.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
+import OfflineIndicator from './components/OfflineIndicator.vue';
 
 // Define the master Firebase collection name here
 const masterFirebaseCollectionName = ref("Offline");
+
+// Register service worker for PWA functionality
+onMounted(async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered successfully:', registration);
+    } catch (error) {
+      console.error('Service Worker registration failed:', error);
+    }
+  }
+});
 </script>
 
 <template>
   <div id="app-container">
+    <!-- Offline Status Indicator -->
+    <OfflineIndicator :show-debug-info="false" />
+    
     <div class="survey-content-area">
       <Constructor :firebase-collection-override="masterFirebaseCollectionName" />
     </div>

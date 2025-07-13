@@ -291,6 +291,7 @@ import {
 } from "firebase/firestore";
 import CommuneSelector from "./CommuneSelector.vue";
 import GareSelector from "./GareSelector.vue";
+import { useOfflineData } from "../composables/useOfflineData.js";
 
 const props = defineProps({
   surveyQuestions: {
@@ -355,6 +356,9 @@ const stationInput = ref("");
 const streetInput = ref("");
 const filteredStations = ref([]);
 const filteredStreets = ref([]);
+
+// Initialize offline data loading
+const { loadAllData, searchStreets, getDataStats } = useOfflineData();
 
 // State for Gare selection (using GareSelector component now)
 const selectedGareName = ref("");
@@ -1017,8 +1021,18 @@ const getNextId = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   getDocCount();
+  
+  // Load all offline data on mount
+  try {
+    console.log('Loading offline data...');
+    await loadAllData();
+    console.log('Offline data loaded successfully');
+  } catch (error) {
+    console.error('Failed to load offline data:', error);
+  }
+  
   // console.log(`SurveyTemplate.vue mounted. Collection: ${props.firebaseCollectionName}, Questions: ${props.surveyQuestions?.length || 0}, Poste Question ID: ${props.posteTravailQuestionId || 'N/A'}`);
 });
 
@@ -1046,15 +1060,23 @@ const selectStationFromList = (station) => {
   filteredStations.value = [];
 };
 
-const filterStreets = () => {
+const filterStreets = async () => {
   if (!streetInput.value) {
     filteredStreets.value = [];
     return;
   }
-  const inputLower = streetInput.value.toLowerCase();
-  filteredStreets.value = Array.isArray(props.streetsList)
-    ? props.streetsList.filter(street => street.toLowerCase().includes(inputLower))
-    : [];
+  
+  try {
+    // Use offline-first search
+    filteredStreets.value = await searchStreets(streetInput.value, 100);
+  } catch (error) {
+    console.error('Error filtering streets:', error);
+    // Fallback to props if available
+    const inputLower = streetInput.value.toLowerCase();
+    filteredStreets.value = Array.isArray(props.streetsList)
+      ? props.streetsList.filter(street => street.toLowerCase().includes(inputLower))
+      : [];
+  }
 };
 
 const selectStreetFromList = (street) => {

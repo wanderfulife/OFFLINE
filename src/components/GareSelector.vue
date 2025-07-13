@@ -4,7 +4,7 @@
       class="form-control" 
       type="text" 
       v-model="gareInputDisplay" 
-      @input="searchGares" 
+      @input="searchGaresLocal" 
       @focus="showDropdown = true" 
       placeholder="Saisir ou rechercher une gare (train)" 
     />
@@ -23,25 +23,10 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import { useOfflineData } from '../composables/useOfflineData.js';
 
-const allGares = ref([]); // To store the fetched list of gares
-
-onMounted(async () => {
-  try {
-    const response = await fetch('/gare.json'); // Assuming gare.json is in /public
-    if (response.ok) {
-      const data = await response.json();
-      // The gare.json already has the correct structure with "Nom Gare" property
-      allGares.value = data;
-    } else {
-      console.error('Error loading gare.json: Response not OK', response.status);
-      allGares.value = []; // Ensure it's an empty array on failure
-    }
-  } catch (error) {
-    console.error('Error fetching gare.json:', error);
-    allGares.value = []; // Ensure it's an empty array on error
-  }
-});
+const { getGares, searchGares, loadingState } = useOfflineData();
+const allGares = ref([]);
 
 const props = defineProps({
   modelValue: String // The selected gare name
@@ -62,23 +47,21 @@ const getGareName = (gare) => {
   return gare;
 };
 
-const searchGares = () => {
-  if (!gareInputDisplay.value || !allGares.value.length) {
+const searchGaresLocal = async () => {
+  if (!gareInputDisplay.value) {
     filteredGares.value = [];
-    // Do not hide dropdown immediately on input, allow clicking
-    // showDropdown.value = false; 
-    // emit current input if user types and doesn't select
-    // emit('update:modelValue', gareInputDisplay.value);
     return;
   }
 
-  const searchTerm = gareInputDisplay.value.toLowerCase();
-  filteredGares.value = allGares.value.filter(gare => {
-    const name = getGareName(gare);
-    return name && typeof name === 'string' && name.toLowerCase().includes(searchTerm);
-  }).slice(0, 100); // Limit results
-
-  showDropdown.value = filteredGares.value.length > 0;
+  try {
+    // Use the offline-first search function
+    filteredGares.value = await searchGares(gareInputDisplay.value, 100);
+    showDropdown.value = filteredGares.value.length > 0;
+  } catch (error) {
+    console.error('Error searching gares:', error);
+    filteredGares.value = [];
+    showDropdown.value = false;
+  }
 };
 
 const selectGare = (gare) => {
