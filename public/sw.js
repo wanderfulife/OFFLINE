@@ -8,7 +8,9 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/vite.svg',
-  '/plan.png'
+  '/plan.png',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // Large data files to cache separately  

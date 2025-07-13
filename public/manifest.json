@@ -2,12 +2,13 @@
   "name": "Enquête Transport - Étude de Déplacement",
   "short_name": "Enquête Transport",
   "description": "Application d'enquête pour les études de déplacement dans les transports publics",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#2a3b63",
   "theme_color": "#2a3b63",
   "orientation": "portrait",
   "scope": "/",
+  "id": "/",
   "lang": "fr",
   "icons": [
     {

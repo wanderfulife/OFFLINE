@@ -6,4 +6,11 @@ export default defineConfig({
 	build: {
 		chunkSizeWarningLimit: 1600,
 	},
+	publicDir: 'public',
+	server: {
+		host: true // Allow access from other devices on the network
+	},
+	define: {
+		'process.env': {}
+	}
 });
