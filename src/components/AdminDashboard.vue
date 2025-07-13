@@ -218,26 +218,30 @@ onMounted(() => {
   display: block;
   width: auto;
   max-width: 200px;
-  margin: 15px auto;
+  margin: 0 auto;
   background: linear-gradient(135deg, rgba(45, 55, 72, 0.4) 0%, rgba(26, 32, 44, 0.6) 100%);
   color: #9ca3af;
   border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 20px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   text-transform: lowercase;
   letter-spacing: 1px;
   text-align: center;
-  opacity: 0.5;
+  opacity: 0.6;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-signin::before {
@@ -256,12 +260,12 @@ onMounted(() => {
 }
 
 .btn-signin:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.25) 100%);
-  color: #d1d5db;
-  opacity: 0.8;
-  border-color: rgba(59, 130, 246, 0.2);
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.3) 100%);
+  color: #e5e7eb;
+  opacity: 0.9;
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
 }
 
 .btn-signin:active {
@@ -534,6 +538,23 @@ onMounted(() => {
 .count {
   font-weight: normal;
   color: #68d391;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+  .btn-signin {
+    max-width: 180px;
+    padding: 12px 18px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-signin {
+    max-width: 160px;
+    padding: 10px 16px;
+    font-size: 11px;
+  }
 }
 
 @media (max-width: 600px) {
