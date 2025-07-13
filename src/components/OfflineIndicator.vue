@@ -3,7 +3,6 @@
     <!-- Connection Status Indicator -->
     <div class="connection-status" :class="{ 'online': isOnline, 'offline': !isOnline }">
       <div class="status-dot"></div>
-      <span class="status-text">{{ isOnline ? 'En ligne' : 'Hors ligne' }}</span>
     </div>
 
     <!-- Sync Status -->
@@ -30,15 +29,15 @@
       </button>
     </div>
 
-    <!-- PWA Install Banner -->
-    <div v-if="isInstallable && !isPWAInstalled" class="install-banner">
+    <!-- PWA Install Banner - Hidden as requested -->
+    <!-- <div v-if="isInstallable && !isPWAInstalled" class="install-banner">
       <div class="install-message">
         <span>📱 Installer l'application pour une utilisation hors ligne optimale</span>
       </div>
       <button @click="handleInstallApp" class="install-button">
         Installer
       </button>
-    </div>
+    </div> -->
 
     <!-- Error Message -->
     <div v-if="syncStatus.syncError" class="sync-error">
@@ -169,8 +168,8 @@ onMounted(() => {
 <style scoped>
 .offline-indicator-container {
   position: fixed;
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  left: 20px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -186,40 +185,35 @@ onMounted(() => {
 .connection-status {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  color: white;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: transparent;
   transition: all 0.3s ease;
 }
 
 .connection-status.online {
-  background: rgba(34, 197, 94, 0.2);
-  border-color: rgba(34, 197, 94, 0.3);
-  color: #22c55e;
+  background: transparent;
 }
 
 .connection-status.offline {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
+  background: transparent;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: currentColor;
+  background: #22c55e;
   animation: pulse 2s infinite;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 }
 
 .connection-status.offline .status-dot {
+  background: #ef4444;
   animation: none;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
 }
 
 @keyframes pulse {
@@ -405,8 +399,8 @@ onMounted(() => {
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .offline-indicator-container {
-    top: 5px;
-    right: 5px;
+    top: 10px;
+    left: 15px;
   }
   
   .install-banner,
