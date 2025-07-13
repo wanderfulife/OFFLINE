@@ -1,6 +1,6 @@
 // Service Worker for Survey App - Offline-First PWA
-const CACHE_NAME = 'survey-app-v1';
-const DATA_CACHE_NAME = 'survey-data-v1';
+const CACHE_NAME = 'survey-app-v2';
+const DATA_CACHE_NAME = 'survey-data-v2';
 
 // Static assets to cache
 const STATIC_ASSETS = [
@@ -68,10 +68,13 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Handle Firebase Firestore requests
-  if (url.origin.includes('firestore.googleapis.com')) {
-    event.respondWith(handleFirebaseRequest(request));
-    return;
+  // Handle Firebase Firestore requests - only POST requests (survey submissions)
+  if (url.origin.includes('firestore.googleapis.com') && request.method === 'POST') {
+    // Only handle actual document writes, not real-time listener connections
+    if (url.pathname.includes('/documents/') || url.pathname.includes(':write')) {
+      event.respondWith(handleFirebaseRequest(request));
+      return;
+    }
   }
 
   // Handle data files (cache-first strategy)
@@ -89,6 +92,9 @@ self.addEventListener('fetch', (event) => {
 
 // Handle Firebase/Firestore requests (network-first with background sync)
 async function handleFirebaseRequest(request) {
+  // Clone the request BEFORE any fetch attempts to avoid "body already used" error
+  const requestClone = request.clone();
+  
   try {
     // Try network first
     const response = await fetch(request);
@@ -102,9 +108,9 @@ async function handleFirebaseRequest(request) {
     console.log('Firebase request failed, queuing for background sync:', error);
     
     // If it's a POST request (survey submission), queue it for background sync
-    if (request.method === 'POST') {
+    if (requestClone.method === 'POST') {
       try {
-        await queueSurveyForSync(request);
+        await queueSurveyForSync(requestClone);
         
         // Return a success response to the app
         return new Response(
@@ -239,7 +245,8 @@ async function updateDataFileCache(request, cache) {
 // Queue survey submissions for background sync
 async function queueSurveyForSync(request) {
   try {
-    const requestBody = await request.clone().text();
+    // Use the request directly since it's already been cloned
+    const requestBody = await request.text();
     
     const surveyData = {
       url: request.url,

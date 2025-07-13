@@ -861,9 +861,19 @@ const finishSurvey = async () => {
       capturedPosteTravail = capturedAnswersData[props.posteTravailQuestionId];
     }
 
+    // Set completion state BEFORE attempting Firebase save
     isSurveyComplete.value = true;
+    
     const now = new Date();
-    const uniqueSurveyInstanceId = await getNextId();
+    let uniqueSurveyInstanceId;
+    
+    try {
+      uniqueSurveyInstanceId = await getNextId();
+    } catch (idError) {
+      // If we can't get Firebase ID (offline), generate a local one
+      console.warn("Failed to get Firebase ID, using local ID:", idError);
+      uniqueSurveyInstanceId = `LOCAL-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
 
     const surveyResult = {
       ID_questionnaire: uniqueSurveyInstanceId,
@@ -899,19 +909,31 @@ const finishSurvey = async () => {
       surveyResult[props.posteTravailQuestionId] = capturedPosteTravail;
     }
 
-    await addDoc(surveyCollectionRef.value, surveyResult);
+    try {
+      // Try to save to Firebase
+      await addDoc(surveyCollectionRef.value, surveyResult);
+      console.log("Survey saved to Firebase successfully");
+    } catch (firebaseError) {
+      console.log("Firebase save failed (offline), data will be queued:", firebaseError);
+      // Don't throw the error - the service worker will handle queueing
+      // The survey completion should still proceed
+    }
     
   } catch (error) {
     console.error("Error saving survey:", error);
+    // Still mark as complete even if there's an error
+    isSurveyComplete.value = true;
   } finally {
+    // Always reset the finishing flag
     isFinishing.value = false;
   }
 };
 
 const resetSurvey = () => {
+  // Force reset the finishing flag if it's stuck
   if (isFinishing.value) {
-    console.warn("Reset prevented: Survey is currently being finished.");
-    return;
+    console.warn("Reset requested while finishing. Forcing reset...");
+    isFinishing.value = false;
   }
   
   // Set start time for the new survey

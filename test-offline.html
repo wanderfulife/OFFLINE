@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Offline PWA Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .online { background: #d4edda; border: 1px solid #c3e6cb; }
+        .offline { background: #f8d7da; border: 1px solid #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; }
+        #log { background: #f8f9fa; padding: 10px; height: 300px; overflow-y: scroll; }
+    </style>
+</head>
+<body>
+    <h1>PWA Offline Test</h1>
+    
+    <div id="status" class="status"></div>
+    
+    <div>
+        <button onclick="testDataLoad()">Test Data Loading</button>
+        <button onclick="testSurveySubmit()">Test Survey Submit</button>
+        <button onclick="clearCache()">Clear Cache</button>
+        <button onclick="goOffline()">Simulate Offline</button>
+        <button onclick="goOnline()">Simulate Online</button>
+    </div>
+    
+    <h3>Console Log:</h3>
+    <div id="log"></div>
+
+    <script>
+        // Check service worker support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => log('✅ Service Worker registered'))
+                .catch(err => log('❌ Service Worker failed: ' + err));
+        }
+
+        // Monitor online/offline status
+        function updateStatus() {
+            const status = document.getElementById('status');
+            if (navigator.onLine) {
+                status.className = 'status online';
+                status.textContent = '🟢 Online';
+            } else {
+                status.className = 'status offline';
+                status.textContent = '🔴 Offline';
+            }
+        }
+
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus();
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${time}] ${message}<br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        async function testDataLoad() {
+            log('🔄 Testing data loading...');
+            try {
+                const tests = [
+                    { name: 'gare.json', url: '/gare.json' },
+                    { name: 'output.json', url: '/output.json' },
+                    { name: 'streets.json', url: '/streets.json' }
+                ];
+
+                for (const test of tests) {
+                    const start = Date.now();
+                    const response = await fetch(test.url);
+                    const data = await response.json();
+                    const time = Date.now() - start;
+                    
+                    if (Array.isArray(data)) {
+                        log(`✅ ${test.name}: ${data.length} items (${time}ms)`);
+                    } else {
+                        log(`❌ ${test.name}: Invalid format`);
+                    }
+                }
+            } catch (error) {
+                log(`❌ Data loading failed: ${error.message}`);
+            }
+        }
+
+        async function testSurveySubmit() {
+            log('🔄 Testing survey submission...');
+            
+            const mockSurvey = {
+                ID_questionnaire: `TEST-${Date.now()}`,
+                firebase_timestamp: new Date().toISOString(),
+                ENQUETEUR: 'TestUser',
+                DATE: new Date().toLocaleDateString('fr-FR'),
+                HEURE_DEBUT: '10:00:00',
+                HEURE_FIN: '10:05:00',
+                Q1: 'Test Answer',
+                offline_test: true
+            };
+
+            try {
+                // This should work both online and offline
+                const response = await fetch('https://firestore.googleapis.com/v1/projects/reims-dc6cc/databases/(default)/documents/Offline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(mockSurvey)
+                });
+
+                const result = await response.json();
+                
+                if (result.offline) {
+                    log('✅ Survey queued for offline sync');
+                } else {
+                    log('✅ Survey submitted online');
+                }
+            } catch (error) {
+                log(`❌ Survey submission failed: ${error.message}`);
+            }
+        }
+
+        async function clearCache() {
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                log('✅ All caches cleared');
+            }
+        }
+
+        function goOffline() {
+            // This simulates going offline for testing
+            log('🔴 Simulating offline mode...');
+            log('ℹ️ Use browser dev tools Network > Offline for real test');
+        }
+
+        function goOnline() {
+            log('🟢 Simulating online mode...');
+            log('ℹ️ Use browser dev tools Network > Online for real test');
+        }
+
+        // Test PWA installation
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            log('📱 PWA install prompt available');
+            
+            const installBtn = document.createElement('button');
+            installBtn.textContent = 'Install PWA';
+            installBtn.onclick = async () => {
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                log(`📱 Install result: ${result.outcome}`);
+                deferredPrompt = null;
+                installBtn.remove();
+            };
+            document.body.appendChild(installBtn);
+        });
+
+        // Auto-test on load
+        setTimeout(() => {
+            log('🚀 Starting automatic tests...');
+            testDataLoad();
+        }, 1000);
+    </script>
+</body>
+</html>
