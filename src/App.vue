@@ -42,36 +42,56 @@ html, body {
   font-family: 'Arial', sans-serif;
   background-color: #2a3b63; /* Consistent background */
   color: white;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 #app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh; /* Full viewport height */
+  position: relative;
 }
 
 .survey-content-area {
-  flex-grow: 1; /* Takes up all available space, pushing footer down */
+  flex: 1; /* Takes up all available space, pushing admin section down */
   display: flex;
-  flex-direction: column; /* So SurveyTemplate can fill its height */
-  /* justify-content: center; Align to top for survey form */
-  /* align-items: flex-start; */ 
+  flex-direction: column;
+  min-height: 0; /* Allow content to shrink if needed */
+  overflow: auto; /* Allow scrolling within content area if needed */
 }
 
 .admin-section {
+  flex-shrink: 0; /* Prevent the admin section from shrinking */
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: #2a3b63; /* Same as main background */
-  padding: 20px 0; /* Some padding for spacing */
+  padding: 20px 0;
   margin: 0;
   border: none;
+  position: relative;
+  z-index: 10;
+  /* Add a subtle top border to separate from content */
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Reset/override specific styles for AdminDashboard's button if needed */
-.btn-signin {
-  /* Styles from AdminDashboard.vue might be fine, or adjust here */
-  /* e.g., margin: 0; to ensure it's centered by flex container */
-   margin-bottom: 0; /* Remove default margin if any from component */
+/* Enhanced button positioning */
+.admin-section .btn-signin {
+  margin: 0; /* Remove default margin */
+  position: relative;
+}
+
+/* Ensure proper spacing on mobile */
+@media (max-width: 768px) {
+  .admin-section {
+    padding: 15px 0;
+  }
+}
+
+/* Handle very small screens */
+@media (max-width: 480px) {
+  .admin-section {
+    padding: 12px 0;
+  }
 }
 </style>
