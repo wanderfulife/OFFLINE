@@ -1376,15 +1376,14 @@ html, body {
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Use min-height instead of fixed height */
-  min-height: -webkit-fill-available; /* For mobile Safari */
+  height: 100vh; /* Fixed height - fit everything */
+  height: -webkit-fill-available; /* For mobile Safari */
   width: 100%;
   background-color: #2a3b63;
   color: white;
   padding: 0;
-  /* Prevent scrolling issues on mobile */
   position: relative;
-  overflow-x: hidden; /* Only prevent horizontal overflow */
+  overflow: hidden; /* NO SCROLLING AT ALL */
 }
 
 .content-container {
@@ -1392,15 +1391,14 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center content vertically */
-  padding: 20px; /* Standard padding */
+  justify-content: flex-start; /* Start from TOP, not center */
+  padding: 20px 20px 10px 20px; /* Less bottom padding */
   width: 100%;
   max-width: 700px;
   margin: 0 auto;
   box-sizing: border-box;
-  /* Prevent content jumping */
   position: relative;
-  background-color: #2a3b63; /* Ensure content container also has background */
+  background-color: #2a3b63;
 }
 
 /* Add a fallback for very short content */
@@ -1590,19 +1588,18 @@ html, body {
 }
 
 .logo-center {
-  max-width: 120px; 
+  max-width: 80px; /* Smaller logo */
   height: auto;
-  margin: 0; /* Remove all margins */
+  margin: 10px 0; /* Minimal top margin */
 }
 
 .enqueteur-step {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* Start from TOP */
   width: 100%;
-  flex: 1; /* Take available space instead of height 100% */
-  padding: 20px;
+  padding: 10px; /* Minimal padding */
   box-sizing: border-box;
 }
 
@@ -1616,15 +1613,16 @@ html, body {
 }
 
 .enqueteur-content h2 {
-  margin: 20px 0 15px 0;
+  margin: 10px 0; /* Compact margins */
+  font-size: 1.4rem;
 }
 
 .enqueteur-content .form-control {
-  margin: 15px 0;
+  margin: 10px 0; /* Compact margins */
 }
 
 .enqueteur-content .btn-next {
-  margin: 15px 0 0 0;
+  margin: 10px 0; /* Compact margins */
 }
 
 .progress-bar {
@@ -1647,22 +1645,33 @@ html, body {
     max-width: 90%; 
   }
   
-  /* Reduce padding on mobile for better space usage */
+  /* Compact mobile layout - NO SCROLLING */
   .content-container {
-    padding: 15px;
+    padding: 10px 15px 5px 15px; /* Minimal padding */
   }
   
   .enqueteur-step {
-    padding: 15px;
+    padding: 5px; /* Minimal padding */
   }
   
   .logo-center {
-    max-width: 100px;
+    max-width: 70px; /* Even smaller on mobile */
+    margin: 5px 0; /* Minimal margins */
   }
   
   .enqueteur-content h2 {
-    margin: 15px 0;
-    font-size: 1.3rem;
+    margin: 8px 0; /* Minimal margins */
+    font-size: 1.2rem; /* Smaller font */
+  }
+  
+  .enqueteur-content .form-control {
+    margin: 8px 0; /* Minimal margins */
+    padding: 8px; /* Smaller padding */
+  }
+  
+  .enqueteur-content .btn-next {
+    margin: 8px 0; /* Minimal margins */
+    padding: 8px 15px; /* Smaller padding */
   }
   
   /* Ensure proper spacing on small screens */
