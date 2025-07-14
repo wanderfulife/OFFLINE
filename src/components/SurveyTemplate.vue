@@ -1376,15 +1376,15 @@ html, body {
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Fixed height instead of min-height */
-  height: -webkit-fill-available; /* For mobile Safari */
+  min-height: 100vh; /* Use min-height instead of fixed height */
+  min-height: -webkit-fill-available; /* For mobile Safari */
   width: 100%;
   background-color: #2a3b63;
   color: white;
   padding: 0;
   /* Prevent scrolling issues on mobile */
   position: relative;
-  overflow: hidden; /* Prevent both x and y overflow */
+  overflow-x: hidden; /* Only prevent horizontal overflow */
 }
 
 .content-container {
@@ -1393,7 +1393,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center; /* Center content vertically */
-  padding: 10px 20px; /* Reduced padding for mobile */
+  padding: 20px; /* Standard padding */
   width: 100%;
   max-width: 700px;
   margin: 0 auto;
@@ -1401,7 +1401,6 @@ html, body {
   /* Prevent content jumping */
   position: relative;
   background-color: #2a3b63; /* Ensure content container also has background */
-  overflow-y: auto; /* Allow scrolling within content if needed */
 }
 
 /* Add a fallback for very short content */
@@ -1591,9 +1590,9 @@ html, body {
 }
 
 .logo-center {
-  max-width: 150px; 
+  max-width: 120px; 
   height: auto;
-  margin: 0 0 30px 0; /* Centered positioning for enqueteur step */
+  margin: 0; /* Remove all margins */
 }
 
 .enqueteur-step {
@@ -1602,7 +1601,7 @@ html, body {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100%;
+  flex: 1; /* Take available space instead of height 100% */
   padding: 20px;
   box-sizing: border-box;
 }
@@ -1613,6 +1612,19 @@ html, body {
   align-items: center;
   width: 100%;
   max-width: 400px;
+  text-align: center;
+}
+
+.enqueteur-content h2 {
+  margin: 20px 0 15px 0;
+}
+
+.enqueteur-content .form-control {
+  margin: 15px 0;
+}
+
+.enqueteur-content .btn-next {
+  margin: 15px 0 0 0;
 }
 
 .progress-bar {
@@ -1637,21 +1649,20 @@ html, body {
   
   /* Reduce padding on mobile for better space usage */
   .content-container {
-    padding: 5px 15px;
+    padding: 15px;
   }
   
   .enqueteur-step {
-    padding: 10px;
+    padding: 15px;
   }
   
   .logo-center {
-    max-width: 120px;
-    margin-bottom: 20px;
+    max-width: 100px;
   }
   
   .enqueteur-content h2 {
-    margin: 10px 0;
-    font-size: 1.5rem;
+    margin: 15px 0;
+    font-size: 1.3rem;
   }
   
   /* Ensure proper spacing on small screens */
@@ -1661,21 +1672,8 @@ html, body {
   
   /* Mobile-specific height fixes */
   .app-container {
-    height: 100vh;
-    height: -webkit-fill-available;
-    /* Fix for mobile browsers with dynamic viewport */
-    height: calc(var(--vh, 1vh) * 100);
-  }
-  
-  /* Optimize input spacing on mobile */
-  .form-control {
-    padding: 10px;
-    margin-bottom: 15px;
-  }
-  
-  .btn-next, .btn-return, .btn-option {
-    padding: 10px 15px;
-    margin-top: 5px;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
   }
   
   /* Ensure body fills viewport on mobile */
