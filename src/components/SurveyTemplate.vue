@@ -32,20 +32,22 @@
 
       <!-- Survey Questions Step -->
       <div v-else-if="currentStep === 'survey' && !isSurveyComplete && currentQuestion">
-        <div class="question-container">
-          <h2>{{ currentQuestionText }}</h2>
+        <div :class="isParkingQuestion ? 'question-container-minimal' : 'question-container'">
+          <h2 v-if="!isParkingQuestion">{{ currentQuestionText }}</h2>
+          <h3 v-if="isParkingQuestion" class="question-title-minimal">{{ currentQuestionText }}</h3>
 
           <!-- Question Image (if available) -->
-          <div v-if="currentQuestion.image" class="question-image-container">
+          <div v-if="currentQuestion.image" 
+               :class="isParkingQuestion ? 'question-image-container-minimal' : 'question-image-container'">
             <img 
               :src="currentQuestion.image" 
               :alt="currentQuestion.imageAlt || 'Image d\'aide pour la question'"
-              class="question-image"
+              :class="isParkingQuestion ? 'question-image-minimal' : 'question-image'"
               loading="eager"
               @error="handleImageError"
               @click="openImageZoom"
             />
-            <div class="zoom-hint">
+            <div v-if="!isParkingQuestion" class="zoom-hint">
               <span>👆 Appuyez pour agrandir</span>
             </div>
           </div>
@@ -161,12 +163,14 @@
           </div>
           
           <!-- Single Choice Questions (buttons) -->
-          <div v-else-if="currentQuestion.type === 'singleChoice' && currentQuestion.options">
+          <div v-else-if="currentQuestion.type === 'singleChoice' && currentQuestion.options" 
+               :class="{ 'parking-question': isParkingQuestion }">
             <div
               v-for="(option) in currentQuestion.options"
               :key="option.id"
             >
-              <button @click="selectAnswer(option)" class="btn-option">
+              <button @click="selectAnswer(option)" 
+                      :class="isParkingQuestion ? 'btn-option-minimal' : 'btn-option'">
                 {{ option.text }}
               </button>
             </div>
@@ -455,6 +459,12 @@ const imageTransform = computed(() => {
     transform: `translate(${panX.value}px, ${panY.value}px) scale(${zoomLevel.value})`,
     transition: isDragging.value ? 'none' : 'transform 0.3s ease-out'
   };
+});
+
+const isParkingQuestion = computed(() => {
+  return currentQuestion.value && 
+         currentQuestion.value.text && 
+         currentQuestion.value.text.includes("Où avez-vous stationné votre véhicule");
 });
 
 // Methods
@@ -2056,6 +2066,125 @@ html, body {
   .zoom-image-wrapper {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+  }
+}
+
+/* Minimal Parking Question Styles */
+.question-container-minimal {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 300px;
+  max-width: 300px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #333;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.question-title-minimal {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #2a3b63;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.question-image-container-minimal {
+  margin: 10px 0;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.question-image-minimal {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.parking-question {
+  width: 100%;
+  max-width: none;
+}
+
+.parking-question > div {
+  width: 100%;
+  max-width: none;
+  margin-bottom: 8px;
+}
+
+.btn-option-minimal {
+  width: 100%;
+  max-width: none;
+  color: #333;
+  background: rgba(74, 90, 131, 0.1);
+  padding: 8px 12px;
+  margin: 0;
+  margin-bottom: 6px;
+  border: 1px solid rgba(74, 90, 131, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+  transition: all 0.2s ease;
+  line-height: 1.3;
+  min-height: auto;
+}
+
+.btn-option-minimal:hover {
+  background: rgba(74, 90, 131, 0.2);
+  border-color: rgba(74, 90, 131, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-option-minimal:last-child {
+  margin-bottom: 0;
+}
+
+/* Mobile responsiveness for minimal parking question */
+@media screen and (max-width: 768px) {
+  .question-container-minimal {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+  }
+  
+  .question-title-minimal {
+    font-size: 13px;
+  }
+  
+  .btn-option-minimal {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+}
+
+/* Very small screens - stack in corner but smaller */
+@media screen and (max-width: 480px) {
+  .question-container-minimal {
+    top: 10px;
+    right: 10px;
+    left: auto;
+    width: 250px;
+    max-width: calc(100vw - 20px);
   }
 }
 
