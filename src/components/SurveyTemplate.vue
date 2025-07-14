@@ -1360,10 +1360,12 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  /* Prevent iOS bounce scrolling and improve mobile behavior */
+  /* Improve mobile scrolling behavior */
   -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
   background-color: #2a3b63; /* Ensure body background matches */
+  /* Prevent bounce scrolling on iOS while allowing normal scrolling */
+  overscroll-behavior: contain;
 }
 
 html, body {
@@ -1376,14 +1378,15 @@ html, body {
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Fixed height - fit everything */
-  height: -webkit-fill-available; /* For mobile Safari */
+  min-height: 100vh; /* Allow content to grow beyond viewport */
+  min-height: -webkit-fill-available; /* For mobile Safari */
   width: 100%;
   background-color: #2a3b63;
   color: white;
   padding: 0;
   position: relative;
-  overflow: hidden; /* NO SCROLLING AT ALL */
+  overflow-y: auto; /* Allow vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .content-container {
@@ -1392,13 +1395,14 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start; /* Start from TOP, not center */
-  padding: 20px 20px 10px 20px; /* Less bottom padding */
+  padding: 20px 20px 40px 20px; /* More bottom padding for scrolling space */
   width: 100%;
   max-width: 700px;
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
   background-color: #2a3b63;
+  min-height: 0; /* Allow the container to shrink/grow as needed */
 }
 
 /* Add a fallback for very short content */
@@ -1479,6 +1483,17 @@ html, body {
   .btn-option,
   .checkbox-label {
     min-height: 44px; /* iOS recommended touch target size */
+  }
+  
+  /* Ensure smooth scrolling on mobile */
+  .app-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Add extra bottom padding on mobile for better scrolling experience */
+  .content-container {
+    padding-bottom: 60px;
   }
 }
 
