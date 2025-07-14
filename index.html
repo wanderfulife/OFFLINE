@@ -9,6 +9,7 @@
     <link rel="manifest" href="./manifest.json">
     
     <!-- iOS-specific PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="description" content="Application d'enquête pour les études de déplacement dans les transports publics">
     
@@ -20,10 +21,10 @@
     <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
     <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
     
-    <!-- Preload critical data files -->
-    <link rel="preload" href="/gare.json" as="fetch" crossorigin>
+    <!-- Preload critical data files - removed to fix unused preload warnings -->
+    <!-- <link rel="preload" href="/gare.json" as="fetch" crossorigin>
     <link rel="preload" href="/output.json" as="fetch" crossorigin>
-    <link rel="preload" href="/streets.json" as="fetch" crossorigin>
+    <link rel="preload" href="/streets.json" as="fetch" crossorigin> -->
     
     <title>Enquête Transport - Étude de Déplacement</title>
   </head>
