@@ -5,7 +5,15 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "no-cache, no-store, must-revalidate, max-age=0"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
         },
         {
           "key": "Content-Type",
@@ -17,12 +25,21 @@
       "source": "/manifest.json",
       "headers": [
         {
-          "key": "Content-Type",
-          "value": "application/json"
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         },
         {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
           "key": "Cache-Control",
-          "value": "no-cache"
+          "value": "no-cache, no-store, must-revalidate"
         }
       ]
     }

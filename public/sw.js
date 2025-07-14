@@ -1,6 +1,6 @@
 // Service Worker for Survey App - Offline-First PWA
-const CACHE_NAME = 'survey-app-v2';
-const DATA_CACHE_NAME = 'survey-data-v2';
+const CACHE_NAME = 'survey-app-v3';
+const DATA_CACHE_NAME = 'survey-data-v3';
 
 // Static assets to cache
 const STATIC_ASSETS = [
@@ -25,7 +25,7 @@ const DATA_FILES = [
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
+  console.log('Service Worker installing...', CACHE_NAME);
   
   event.waitUntil(
     Promise.all([
@@ -43,13 +43,13 @@ self.addEventListener('install', (event) => {
     ])
   );
 
-  // Force activation of new service worker
+  // Force activation of new service worker immediately
   self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
+  console.log('Service Worker activating...', CACHE_NAME);
   
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -61,6 +61,16 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // Notify all clients about the update
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_UPDATED',
+            version: CACHE_NAME
+          });
+        });
+      });
     })
   );
 

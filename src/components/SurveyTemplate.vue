@@ -46,7 +46,7 @@
               @click="openImageZoom"
             />
             <div class="zoom-hint">
-              <span class="zoom-icon">🔍</span>
+              <div class="zoom-icon"></div>
             </div>
           </div>
 
@@ -1876,25 +1876,31 @@ html, body {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 6px;
-  border-radius: 50%;
-  font-size: 16px;
-  font-weight: 500;
   pointer-events: none;
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  transition: all 0.2s ease;
+  z-index: 10;
 }
 
 .zoom-icon {
-  display: block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  border-radius: 50%;
+  position: relative;
   opacity: 0.9;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+}
+
+.zoom-icon::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 2px;
+  background: white;
+  border-radius: 1px;
+  bottom: -4px;
+  right: -4px;
+  transform: rotate(45deg);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 /* Image Zoom Modal Styles */
@@ -1996,12 +2002,20 @@ html, body {
   }
   
   .zoom-hint {
-    font-size: 18px;
-    padding: 8px;
-    bottom: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
+    bottom: 6px;
+    right: 6px;
+  }
+  
+  .zoom-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .zoom-icon::after {
+    width: 5px;
+    height: 2px;
+    bottom: -3px;
+    right: -3px;
   }
   
   .image-zoom-container {
@@ -2029,12 +2043,20 @@ html, body {
   }
   
   .zoom-hint {
-    font-size: 14px;
-    padding: 4px;
-    bottom: 6px;
-    right: 6px;
-    width: 28px;
-    height: 28px;
+    bottom: 4px;
+    right: 4px;
+  }
+  
+  .zoom-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .zoom-icon::after {
+    width: 4px;
+    height: 1.5px;
+    bottom: -2px;
+    right: -2px;
   }
 }
 
