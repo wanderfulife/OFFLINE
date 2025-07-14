@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import Constructor from './components/Constructor.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
-import OfflineIndicator from './components/OfflineIndicator.vue';
+// import OfflineIndicator from './components/OfflineIndicator.vue';
 
 // Define the master Firebase collection name here
 const masterFirebaseCollectionName = ref("Offline");
@@ -22,8 +22,8 @@ onMounted(async () => {
 
 <template>
   <div id="app-container">
-    <!-- Offline Status Indicator -->
-    <OfflineIndicator :show-debug-info="false" />
+    <!-- Offline Status Indicator - Hidden since moved to admin button -->
+    <!-- <OfflineIndicator :show-debug-info="false" /> -->
     
     <div class="survey-content-area">
       <Constructor :firebase-collection-override="masterFirebaseCollectionName" />

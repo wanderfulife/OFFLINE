@@ -1,7 +1,10 @@
 <template>
   <div class="admin-dashboard-root">
     <button class="btn-signin" @click="showSignInModal = true">
-      Connexion Admin
+      connexion admin
+      <div class="connection-status" :class="{ 'online': isOnline, 'offline': !isOnline }">
+        <div class="status-dot"></div>
+      </div>
     </button>
 
     <!-- Sign In Modal -->
@@ -56,6 +59,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import * as XLSX from "xlsx";
 import { templateSurveyQuestions as surveyQuestions } from "./surveyQuestions.js";
+import { useOfflineStatus } from "../composables/useOfflineStatus.js";
 
 const props = defineProps({
   activeFirebaseCollectionName: {
@@ -69,6 +73,9 @@ const showAdminDashboard = ref(false);
 const password = ref("");
 const surveysByEnqueteur = ref({});
 const totalSurveys = ref(0);
+
+// Use offline status composable for connection indicator
+const { isOnline } = useOfflineStatus();
 
 const surveyCollectionRef = collection(db, props.activeFirebaseCollectionName);
 
@@ -215,7 +222,7 @@ onMounted(() => {
 }
 
 .btn-signin {
-  display: block;
+  display: flex;
   width: auto;
   max-width: 200px;
   margin: 0 auto;
@@ -239,9 +246,9 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   min-height: 40px;
-  display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
 }
 
 .btn-signin::before {
@@ -272,6 +279,38 @@ onMounted(() => {
   opacity: 1;
   transform: translateY(0);
   transition: all 0.1s ease;
+}
+
+/* Connection Status Indicator for Admin Button */
+.btn-signin .connection-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-signin .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+}
+
+.btn-signin .connection-status.offline .status-dot {
+  background: #ef4444;
+  animation: none;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* Keep the rest of the styles unchanged */
