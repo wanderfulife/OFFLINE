@@ -1,754 +1,590 @@
-// 🎯 COMPREHENSIVE SURVEY TEMPLATE
-// This demonstrates EVERY feature implemented in the survey system!
+// 🚄 LAMBALLE-ARMOR TRAIN STATION INTERMODALITY SURVEY
+// Based on AREP mobility study questionnaire
 
 export const templateSurveyQuestions = [
-    // 🏢 Work Station Question (for poste-travail functionality)
+    // Q1 - Station presence reason (filters survey flow)
     {
-        id: "WORK_STATION",
-        text: "At which location are you conducting this survey?",
+        id: "Q1",
+        text: "Quelle est la raison de votre présence en gare ?",
         type: 'singleChoice',
         options: [
-            { id: 1, text: "Downtown Office", next: "AGE" },
-            { id: 2, text: "Shopping Mall", next: "AGE" },
-            { id: 3, text: "Train Station", next: "AGE" },
-            { id: 4, text: "University Campus", next: "AGE" },
-            { id: 5, text: "Other Location", next: "LOCATION_SPECIFY" }
+            { id: 1, text: "Je vais prendre le train", next: "Q2_MONTANTS_TRAIN" },
+            { id: 2, text: "Je vais prendre un car", next: "Q2_MONTANTS_CAR" },
+            { id: 3, text: "J'accompagne des voyageurs qui partent / J'attends des voyageurs qui arrivent", next: "Q2_ACCOMPAGNATEURS" },
+            { id: 4, text: "Autre raison (promenade, fréquentation commerce, descentes train vers Ville...)", next: "end" }
         ]
     },
 
-    // 📝 Free text precision for work station
-    {
-        id: "LOCATION_SPECIFY",
-        text: "Please specify the location:",
-        type: 'freeText',
-        freeTextPlaceholder: "Enter location details...",
-        next: "AGE"
-    },
+    // ============ SECTION MONTANTS TRAIN ============
 
-    // 👤 Age with conditional termination
+    // Q2 - Origin for train passengers
     {
-        id: "AGE",
-        text: "What is your age group?",
+        id: "Q2_MONTANTS_TRAIN",
+        text: "Quelle est l'origine de votre déplacement ? D'où êtes-vous parti pour arriver à la gare ?",
         type: 'singleChoice',
         options: [
-            { id: 1, text: "Under 16", next: "end" }, // Survey termination
-            { id: 2, text: "16-17", next: "GUARDIAN_CONSENT" },
-            { id: 3, text: "18-24", next: "EDUCATION" },
-            { id: 4, text: "25-34", next: "EMPLOYMENT" },
-            { id: 5, text: "35-49", next: "EMPLOYMENT" },
-            { id: 6, text: "50-64", next: "EMPLOYMENT" },
-            { id: 7, text: "65+", next: "RETIREMENT" }
+            { id: 1, text: "Auray", next: "Q2A_MONTANTS_TRAIN" },
+            { id: 2, text: "Brech", next: "Q2A_MONTANTS_TRAIN" },
+            { id: 3, text: "Autre commune", next: "Q2_AUTRE_MONTANTS_TRAIN" }
         ]
     },
 
-    // 👨‍👩‍👧‍👦 Minor consent (conditional question)
+    // Q2 - Autre commune for train passengers
     {
-        id: "GUARDIAN_CONSENT",
-        text: "Do you have guardian consent to participate in this survey?",
-        type: 'singleChoice',
-        condition: "AGE == 2", // Only for 16-17 year olds
-        options: [
-            { id: 1, text: "Yes", next: "EDUCATION" },
-            { id: 2, text: "No", next: "end" }
-        ],
-        fallbackNext: "EDUCATION"
-    },
-
-    // 🎓 Education (conditional routing based on age)
-    {
-        id: "EDUCATION",
-        text: "What is your current education level?",
-        type: 'singleChoice',
-        condition: "AGE >= 2 AND AGE <= 3", // Only for younger participants
-        options: [
-            { id: 1, text: "High school student", next: "INTERESTS" },
-            { id: 2, text: "High school graduate", next: "INTERESTS" },
-            { id: 3, text: "University student", next: "UNIVERSITY_DETAILS" },
-            { id: 4, text: "University graduate", next: "EMPLOYMENT" }
-        ],
-        fallbackNext: "EMPLOYMENT"
-    },
-
-    // 🏫 University details with conditional text
-    {
-        id: "UNIVERSITY_DETAILS",
-        text: "Default university question",
-        type: 'multipleChoice',
-        conditionalText: {
-            condition: "WORK_STATION",
-            routes: [
-                { value: 4, text: "Since you're at a university campus, what describes your university experience?" },
-                { value: 1, text: "What describes your university experience?" },
-                { value: 2, text: "What describes your university experience?" },
-                { value: 3, text: "What describes your university experience?" }
-            ]
-        },
-        options: [
-            { id: 1, text: "Full-time student" },
-            { id: 2, text: "Part-time student" },
-            { id: 3, text: "Graduate student" },
-            { id: 4, text: "Research assistant" },
-            { id: 5, text: "Other", next_if_selected: "UNIVERSITY_OTHER" }
-        ],
-        next: "INTERESTS"
-    },
-
-    // 📝 University other specification
-    {
-        id: "UNIVERSITY_OTHER",
-        text: "Please specify your university role:",
-        type: 'freeText',
-        freeTextPlaceholder: "Describe your role...",
-        next: "INTERESTS"
-    },
-
-    // 💼 Employment status
-    {
-        id: "EMPLOYMENT",
-        text: "What is your employment status?",
-        type: 'singleChoice',
-        condition: "AGE >= 4 AND AGE <= 6", // Only for working age adults
-        options: [
-            { id: 1, text: "Full-time employed", next: "JOB_SECTOR" },
-            { id: 2, text: "Part-time employed", next: "JOB_SECTOR" },
-            { id: 3, text: "Self-employed", next: "BUSINESS_TYPE" },
-            { id: 4, text: "Unemployed", next: "INTERESTS" },
-            { id: 5, text: "Student", next: "EDUCATION" }
-        ],
-        fallbackNext: "INTERESTS"
-    },
-
-    // 🏭 Job sector with complex routing
-    {
-        id: "JOB_SECTOR",
-        text: "In which sector do you work?",
-        type: 'singleChoice',
-        options: [
-            { id: 1, text: "Technology", next: "TECH_ROLE" },
-            { id: 2, text: "Healthcare", next: "TRANSPORT_WORK" },
-            { id: 3, text: "Education", next: "TRANSPORT_WORK" },
-            { id: 4, text: "Finance", next: "TRANSPORT_WORK" },
-            { id: 5, text: "Other", next: "JOB_OTHER" }
-        ],
-        conditionalNext: [
-            {
-                condition: "EMPLOYMENT",
-                routes: [
-                    { value: 2, next: "PART_TIME_HOURS" }, // Part-time goes to hours question
-                    { value: 1, next: null } // Full-time continues normal flow
-                ]
-            }
-        ]
-    },
-
-    // 💻 Tech role specification
-    {
-        id: "TECH_ROLE",
-        text: "What is your role in technology?",
-        type: 'multipleChoice',
-        options: [
-            { id: 1, text: "Software Developer" },
-            { id: 2, text: "Data Scientist" },
-            { id: 3, text: "Product Manager" },
-            { id: 4, text: "Designer" },
-            { id: 5, text: "DevOps/Infrastructure" },
-            { id: 6, text: "Other tech role", next_if_selected: "TECH_OTHER" }
-        ],
-        next: "REMOTE_WORK"
-    },
-
-    // 📝 Tech other specification
-    {
-        id: "TECH_OTHER",
-        text: "Please specify your tech role:",
-        type: 'freeText',
-        freeTextPlaceholder: "e.g., Cybersecurity Analyst, QA Engineer...",
-        next: "REMOTE_WORK"
-    },
-
-    // 🏠 Remote work patterns
-    {
-        id: "REMOTE_WORK",
-        text: "What is your remote work arrangement?",
-        type: 'singleChoice',
-        condition: "JOB_SECTOR == 1", // Only for tech workers
-        options: [
-            { id: 1, text: "Fully remote", next: "INTERESTS" },
-            { id: 2, text: "Hybrid (2-3 days office)", next: "TRANSPORT_WORK" },
-            { id: 3, text: "Mostly office (4-5 days)", next: "TRANSPORT_WORK" },
-            { id: 4, text: "Fully office-based", next: "TRANSPORT_WORK" }
-        ],
-        fallbackNext: "TRANSPORT_WORK"
-    },
-
-    // ⏰ Part-time hours
-    {
-        id: "PART_TIME_HOURS",
-        text: "How many hours per week do you work?",
-        type: 'freeText',
-        validation: "numeric",
-        freeTextPlaceholder: "Enter number of hours",
-        next: "TRANSPORT_WORK"
-    },
-
-    // 📝 Job other specification
-    {
-        id: "JOB_OTHER",
-        text: "Please specify your job sector:",
-        type: 'freeText',
-        freeTextPlaceholder: "e.g., Manufacturing, Retail, Government...",
-        next: "TRANSPORT_WORK"
-    },
-
-    // 🏢 Business type for self-employed
-    {
-        id: "BUSINESS_TYPE",
-        text: "What type of business do you run?",
-        type: 'multipleChoice',
-        condition: "EMPLOYMENT == 3", // Only for self-employed
-        options: [
-            { id: 1, text: "Consulting" },
-            { id: 2, text: "Retail/E-commerce" },
-            { id: 3, text: "Food service" },
-            { id: 4, text: "Professional services" },
-            { id: 5, text: "Creative services" },
-            { id: 6, text: "Other", next_if_selected: "BUSINESS_OTHER" }
-        ],
-        next: "INTERESTS",
-        fallbackNext: "INTERESTS"
-    },
-
-    // 📝 Business other specification
-    {
-        id: "BUSINESS_OTHER",
-        text: "Please describe your business:",
-        type: 'freeText',
-        freeTextPlaceholder: "Describe your business type...",
-        next: "INTERESTS"
-    },
-
-    // 🎯 Retirement activities
-    {
-        id: "RETIREMENT",
-        text: "How do you spend most of your time in retirement?",
-        type: 'multipleChoice',
-        condition: "AGE == 7", // Only for 65+ age group
-        options: [
-            { id: 1, text: "Volunteer work" },
-            { id: 2, text: "Hobbies and crafts" },
-            { id: 3, text: "Travel" },
-            { id: 4, text: "Family time" },
-            { id: 5, text: "Part-time work" },
-            { id: 6, text: "Other activities", next_if_selected: "RETIREMENT_OTHER" }
-        ],
-        next: "INTERESTS",
-        fallbackNext: "INTERESTS"
-    },
-
-    // 📝 Retirement other specification
-    {
-        id: "RETIREMENT_OTHER",
-        text: "Please describe your other retirement activities:",
-        type: 'freeText',
-        freeTextPlaceholder: "Describe your activities...",
-        next: "INTERESTS"
-    },
-
-    // 🎨 Interests with precision routing
-    {
-        id: "INTERESTS",
-        text: "What are your main interests? (Select all that apply)",
-        type: 'multipleChoice',
-        options: [
-            { id: 1, text: "Sports and fitness" },
-            { id: 2, text: "Technology and gadgets" },
-            { id: 3, text: "Arts and culture" },
-            { id: 4, text: "Travel and adventure" },
-            { id: 5, text: "Food and cooking" },
-            { id: 6, text: "Music and entertainment" },
-            { id: 7, text: "Reading and learning" },
-            { id: 8, text: "Gaming", next_if_selected: "GAMING_DETAILS" },
-            { id: 9, text: "Other interests", next_if_selected: "INTERESTS_OTHER" }
-        ],
-        next: "LOCATION"
-    },
-
-    // 🎮 Gaming details
-    {
-        id: "GAMING_DETAILS",
-        text: "What type of gaming do you enjoy?",
-        type: 'multipleChoice',
-        options: [
-            { id: 1, text: "Video games (console/PC)" },
-            { id: 2, text: "Mobile games" },
-            { id: 3, text: "Board games" },
-            { id: 4, text: "Card games" },
-            { id: 5, text: "Online multiplayer games" }
-        ],
-        next: "LOCATION"
-    },
-
-    // 📝 Interests other specification
-    {
-        id: "INTERESTS_OTHER",
-        text: "Please specify your other interests:",
-        type: 'freeText',
-        freeTextPlaceholder: "Describe your interests...",
-        next: "LOCATION"
-    },
-
-    // 🗺️ Location using commune selector
-    {
-        id: "LOCATION",
-        text: "What is your municipality of residence?",
+        id: "Q2_AUTRE_MONTANTS_TRAIN",
+        text: "Préciser nom de la commune :",
         type: 'commune',
-        next: "TRANSPORT_MODE"
+        next: "Q3_MONTANTS_TRAIN"
     },
 
-    // 🚗 Primary transport mode
+    // Q2a - Street in Auray/Brech for train passengers
     {
-        id: "TRANSPORT_MODE",
-        text: "What is your primary mode of transportation?",
-        type: 'singleChoice',
-        options: [
-            { id: 1, text: "Car (personal)", next: "CAR_DETAILS" },
-            { id: 2, text: "Public transport", next: "PUBLIC_TRANSPORT" },
-            { id: 3, text: "Bicycle", next: "BIKE_DETAILS" },
-            { id: 4, text: "Walking", next: "SATISFACTION" },
-            { id: 5, text: "Motorcycle/Scooter", next: "SATISFACTION" },
-            { id: 6, text: "Mix of different modes", next: "MIXED_TRANSPORT" }
-        ]
-    },
-
-    // 🚙 Car details
-    {
-        id: "CAR_DETAILS",
-        text: "What type of car do you primarily use?",
-        type: 'singleChoice',
-        condition: "TRANSPORT_MODE == 1",
-        options: [
-            { id: 1, text: "Gasoline", next: "SATISFACTION" },
-            { id: 2, text: "Diesel", next: "SATISFACTION" },
-            { id: 3, text: "Hybrid", next: "SATISFACTION" },
-            { id: 4, text: "Electric", next: "ELECTRIC_EXPERIENCE" },
-            { id: 5, text: "Other", next: "CAR_OTHER" }
-        ],
-        fallbackNext: "SATISFACTION"
-    },
-
-    // ⚡ Electric car experience
-    {
-        id: "ELECTRIC_EXPERIENCE",
-        text: "How has your experience been with electric vehicles?",
-        type: 'singleChoice',
-        options: [
-            { id: 1, text: "Excellent", next: "SATISFACTION" },
-            { id: 2, text: "Good", next: "SATISFACTION" },
-            { id: 3, text: "Average", next: "ELECTRIC_CHALLENGES" },
-            { id: 4, text: "Poor", next: "ELECTRIC_CHALLENGES" },
-            { id: 5, text: "Very poor", next: "ELECTRIC_CHALLENGES" }
-        ]
-    },
-
-    // 🔋 Electric car challenges
-    {
-        id: "ELECTRIC_CHALLENGES",
-        text: "What challenges do you face with electric vehicles?",
-        type: 'multipleChoice',
-        options: [
-            { id: 1, text: "Charging infrastructure" },
-            { id: 2, text: "Range anxiety" },
-            { id: 3, text: "Charging time" },
-            { id: 4, text: "Purchase cost" },
-            { id: 5, text: "Maintenance issues" },
-            { id: 6, text: "Other", next_if_selected: "ELECTRIC_OTHER" }
-        ],
-        next: "SATISFACTION"
-    },
-
-    // 📝 Electric other challenges
-    {
-        id: "ELECTRIC_OTHER",
-        text: "Please describe other electric vehicle challenges:",
-        type: 'freeText',
-        freeTextPlaceholder: "Describe your challenges...",
-        next: "SATISFACTION"
-    },
-
-    // 📝 Car other specification
-    {
-        id: "CAR_OTHER",
-        text: "Please specify your car type:",
-        type: 'freeText',
-        freeTextPlaceholder: "e.g., Hydrogen, Flex-fuel...",
-        next: "SATISFACTION"
-    },
-
-    // 🚌 Public transport details
-    {
-        id: "PUBLIC_TRANSPORT",
-        text: "Which public transport do you use most?",
-        type: 'multipleChoice',
-        condition: "TRANSPORT_MODE == 2",
-        options: [
-            { id: 1, text: "Bus" },
-            { id: 2, text: "Metro/Subway" },
-            { id: 3, text: "Train", next_if_selected: "TRAIN_STATION" },
-            { id: 4, text: "Tram" },
-            { id: 5, text: "Regional trains" },
-            { id: 6, text: "Other", next_if_selected: "TRANSPORT_OTHER" }
-        ],
-        next: "TRANSPORT_FREQUENCY",
-        fallbackNext: "SATISFACTION"
-    },
-
-    // 🚄 Train station selector
-    {
-        id: "TRAIN_STATION",
-        text: "What is your main train station?",
-        type: 'gare',
-        next: "TRANSPORT_FREQUENCY"
-    },
-
-    // 📝 Transport other specification
-    {
-        id: "TRANSPORT_OTHER",
-        text: "Please specify the other transport:",
-        type: 'freeText',
-        freeTextPlaceholder: "e.g., Ferry, Cable car...",
-        next: "TRANSPORT_FREQUENCY"
-    },
-
-    // 🚴 Bike details
-    {
-        id: "BIKE_DETAILS",
-        text: "What type of bicycle do you use?",
-        type: 'singleChoice',
-        condition: "TRANSPORT_MODE == 3",
-        options: [
-            { id: 1, text: "Traditional bicycle", next: "BIKE_STORAGE" },
-            { id: 2, text: "Electric bicycle", next: "BIKE_STORAGE" },
-            { id: 3, text: "Folding bicycle", next: "BIKE_STORAGE" },
-            { id: 4, text: "Shared/rental bicycle", next: "BIKE_SHARING" }
-        ],
-        fallbackNext: "SATISFACTION"
-    },
-
-    // 🔒 Bike storage
-    {
-        id: "BIKE_STORAGE",
-        text: "Where do you typically store your bicycle?",
-        type: 'multipleChoice',
-        options: [
-            { id: 1, text: "At home (garage/basement)" },
-            { id: 2, text: "Bike parking at work" },
-            { id: 3, text: "Public bike racks" },
-            { id: 4, text: "Bike storage facilities" },
-            { id: 5, text: "Other", next_if_selected: "STORAGE_OTHER" }
-        ],
-        next: "SATISFACTION"
-    },
-
-    // 📝 Storage other specification
-    {
-        id: "STORAGE_OTHER",
-        text: "Please describe your bike storage:",
-        type: 'freeText',
-        freeTextPlaceholder: "Describe where you store your bike...",
-        next: "SATISFACTION"
-    },
-
-    // 🚲 Bike sharing details
-    {
-        id: "BIKE_SHARING",
-        text: "Which bike sharing service do you use?",
-        type: 'freeText',
-        freeTextPlaceholder: "e.g., Vélib', Lime, local service...",
-        next: "SATISFACTION"
-    },
-
-    // 🔄 Mixed transport modes
-    {
-        id: "MIXED_TRANSPORT",
-        text: "Which combination of transport modes do you typically use?",
-        type: 'multipleChoice',
-        condition: "TRANSPORT_MODE == 6",
-        options: [
-            { id: 1, text: "Car + Public transport" },
-            { id: 2, text: "Bike + Public transport" },
-            { id: 3, text: "Walking + Public transport" },
-            { id: 4, text: "Car + Bike" },
-            { id: 5, text: "Multiple public transport types" },
-            { id: 6, text: "Other combination", next_if_selected: "MIXED_OTHER" }
-        ],
-        next: "TRANSPORT_FREQUENCY",
-        fallbackNext: "SATISFACTION"
-    },
-
-    // 📝 Mixed transport other
-    {
-        id: "MIXED_OTHER",
-        text: "Please describe your transport combination:",
-        type: 'freeText',
-        freeTextPlaceholder: "Describe your typical transport mix...",
-        next: "TRANSPORT_FREQUENCY"
-    },
-
-    // 📅 Transport frequency
-    {
-        id: "TRANSPORT_FREQUENCY",
-        text: "How often do you use public transport?",
-        type: 'singleChoice',
-        options: [
-            { id: 1, text: "Daily", next: "SATISFACTION" },
-            { id: 2, text: "Several times a week", next: "SATISFACTION" },
-            { id: 3, text: "Once a week", next: "SATISFACTION" },
-            { id: 4, text: "Several times a month", next: "SATISFACTION" },
-            { id: 5, text: "Rarely", next: "RARE_TRANSPORT_REASON" }
-        ]
-    },
-
-    // 🤔 Rare transport reason
-    {
-        id: "RARE_TRANSPORT_REASON",
-        text: "Why do you rarely use public transport?",
-        type: 'multipleChoice',
-        options: [
-            { id: 1, text: "Not available in my area" },
-            { id: 2, text: "Too expensive" },
-            { id: 3, text: "Unreliable service" },
-            { id: 4, text: "Prefer other modes" },
-            { id: 5, text: "Safety concerns" },
-            { id: 6, text: "Other reasons", next_if_selected: "RARE_OTHER" }
-        ],
-        next: "SATISFACTION"
-    },
-
-    // 📝 Rare transport other reason
-    {
-        id: "RARE_OTHER",
-        text: "Please specify other reasons:",
-        type: 'freeText',
-        freeTextPlaceholder: "Explain why you rarely use public transport...",
-        next: "SATISFACTION"
-    },
-
-    // 🚗 Work transport (conditional on employment)
-    {
-        id: "TRANSPORT_WORK",
-        text: "How do you typically commute to work?",
-        type: 'singleChoice',
-        condition: "(EMPLOYMENT == 1 OR EMPLOYMENT == 2) AND REMOTE_WORK != 1", // Only for employed, non-remote workers
-        options: [
-            { id: 1, text: "Same as my primary transport", next: "SATISFACTION" },
-            { id: 2, text: "Different from my primary transport", next: "WORK_TRANSPORT_DIFF" }
-        ],
-        fallbackNext: "SATISFACTION"
-    },
-
-    // 🏢 Different work transport
-    {
-        id: "WORK_TRANSPORT_DIFF",
-        text: "What transport do you use for work commute?",
-        type: 'singleChoice',
-        options: [
-            { id: 1, text: "Car", next: "SATISFACTION" },
-            { id: 2, text: "Public transport", next: "WORK_STATION" },
-            { id: 3, text: "Bicycle", next: "SATISFACTION" },
-            { id: 4, text: "Walking", next: "SATISFACTION" },
-            { id: 5, text: "Mixed modes", next: "SATISFACTION" }
-        ]
-    },
-
-    // 🚉 Work station selector
-    {
-        id: "WORK_STATION",
-        text: "Which station do you use for work commute?",
-        type: 'station',
-        next: "SATISFACTION"
-    },
-
-    // 😊 Satisfaction rating
-    {
-        id: "SATISFACTION",
-        text: "How satisfied are you with your current transportation situation?",
-        type: 'singleChoice',
-        options: [
-            { id: 1, text: "Very dissatisfied", next: "IMPROVEMENT" },
-            { id: 2, text: "Dissatisfied", next: "IMPROVEMENT" },
-            { id: 3, text: "Neutral", next: "GENDER" },
-            { id: 4, text: "Satisfied", next: "RECOMMEND" },
-            { id: 5, text: "Very satisfied", next: "RECOMMEND" }
-        ]
-    },
-
-    // 🔧 Improvement suggestions
-    {
-        id: "IMPROVEMENT",
-        text: "What improvements would make the biggest difference for you?",
-        type: 'multipleChoice',
-        options: [
-            { id: 1, text: "Better reliability" },
-            { id: 2, text: "Lower cost" },
-            { id: 3, text: "More frequent service" },
-            { id: 4, text: "Better accessibility" },
-            { id: 5, text: "Improved safety" },
-            { id: 6, text: "Better infrastructure" },
-            { id: 7, text: "Environmental considerations" },
-            { id: 8, text: "Other improvements", next_if_selected: "IMPROVEMENT_OTHER" }
-        ],
-        next: "GENDER"
-    },
-
-    // 📝 Improvement other specification
-    {
-        id: "IMPROVEMENT_OTHER",
-        text: "Please describe other improvements you'd like to see:",
-        type: 'freeText',
-        freeTextPlaceholder: "Describe your improvement suggestions...",
-        next: "GENDER"
-    },
-
-    // 👍 Recommendation
-    {
-        id: "RECOMMEND",
-        text: "Would you recommend your current transportation to others?",
-        type: 'singleChoice',
-        options: [
-            { id: 1, text: "Definitely", next: "GENDER" },
-            { id: 2, text: "Probably", next: "GENDER" },
-            { id: 3, text: "Maybe", next: "GENDER" },
-            { id: 4, text: "Probably not", next: "RECOMMEND_WHY" },
-            { id: 5, text: "Definitely not", next: "RECOMMEND_WHY" }
-        ]
-    },
-
-    // 🤷 Why not recommend
-    {
-        id: "RECOMMEND_WHY",
-        text: "Why wouldn't you recommend it?",
-        type: 'freeText',
-        freeTextPlaceholder: "Explain your concerns...",
-        next: "GENDER"
-    },
-
-    // 👤 Gender demographics
-    {
-        id: "GENDER",
-        text: "What is your gender?",
-        type: 'singleChoice',
-        options: [
-            { id: 1, text: "Male", next: "INCOME" },
-            { id: 2, text: "Female", next: "INCOME" },
-            { id: 3, text: "Non-binary", next: "INCOME" },
-            { id: 4, text: "Other", next: "INCOME" },
-            { id: 5, text: "Prefer not to say", next: "POSTAL_CODE" }
-        ]
-    },
-
-    // 💰 Income (conditional on not preferring not to say gender)
-    {
-        id: "INCOME",
-        text: "What is your approximate annual household income?",
-        type: 'singleChoice',
-        condition: "GENDER != 5", // Only if didn't prefer not to say gender
-        options: [
-            { id: 1, text: "Under €25,000", next: "POSTAL_CODE" },
-            { id: 2, text: "€25,000 - €50,000", next: "POSTAL_CODE" },
-            { id: 3, text: "€50,000 - €75,000", next: "POSTAL_CODE" },
-            { id: 4, text: "€75,000 - €100,000", next: "POSTAL_CODE" },
-            { id: 5, text: "Over €100,000", next: "POSTAL_CODE" },
-            { id: 6, text: "Prefer not to say", next: "POSTAL_CODE" }
-        ],
-        fallbackNext: "POSTAL_CODE"
-    },
-
-    // 📮 Postal code with validation
-    {
-        id: "POSTAL_CODE",
-        text: "What is your postal code?",
-        type: 'freeText',
-        freeTextPlaceholder: "Enter your postal code (e.g., 75001)",
-        validation: "numeric",
-        next: "STREET_ADDRESS"
-    },
-
-    // 🏠 Street address selector
-    {
-        id: "STREET_ADDRESS",
-        text: "What is your street name? (Optional)",
+        id: "Q2A_MONTANTS_TRAIN",
+        text: "De quelle rue venez-vous ?",
         type: 'street',
-        next: "CONTACT"
+        next: "Q3_MONTANTS_TRAIN"
     },
 
-    // 📧 Contact information
+    // Q3 - Transport mode to station for train passengers
     {
-        id: "CONTACT",
-        text: "Would you like to be contacted about follow-up studies?",
+        id: "Q3_MONTANTS_TRAIN",
+        text: "Quel mode de transport avez-vous utilisé pour vous rendre à la gare ?",
         type: 'singleChoice',
         options: [
-            { id: 1, text: "Yes, I'm interested", next: "EMAIL" },
-            { id: 2, text: "No, thank you", next: "COMMENTS" }
+            { id: 1, text: "À pied", next: "Q4_MONTANTS_TRAIN" },
+            { id: 2, text: "En voiture -- en tant que conducteur", next: "Q3A_MONTANTS_TRAIN" },
+            { id: 3, text: "En voiture -- en tant que passager", next: "Q4_MONTANTS_TRAIN" },
+            { id: 4, text: "En covoiturage avec un autre usager du train", next: "Q4_MONTANTS_TRAIN" },
+            { id: 5, text: "En bus/car", next: "Q3B_MONTANTS_TRAIN" },
+            { id: 6, text: "À vélo", next: "Q3D_MONTANTS_TRAIN" },
+            { id: 7, text: "En trottinette", next: "Q3D_MONTANTS_TRAIN" },
+            { id: 8, text: "En Taxi/VTC", next: "Q4_MONTANTS_TRAIN" },
+            { id: 9, text: "En 2 roues Motorisé (Moto, scooter...)", next: "Q3A_MONTANTS_TRAIN" },
+            { id: 10, text: "En train - je fais une correspondance", next: "Q4_MONTANTS_TRAIN" },
+            { id: 11, text: "Autre", next: "Q3_AUTRE_MONTANTS_TRAIN" }
         ]
     },
 
-    // 📧 Email collection
+    // Q3 - Autre transport mode for train passengers
     {
-        id: "EMAIL",
-        text: "Please provide your email address:",
+        id: "Q3_AUTRE_MONTANTS_TRAIN",
+        text: "Préciser le mode de transport :",
         type: 'freeText',
-        freeTextPlaceholder: "your.email@example.com",
-        next: "COMMENTS"
+        freeTextPlaceholder: "Préciser",
+        next: "Q4_MONTANTS_TRAIN"
     },
 
-    // 💬 Final comments
+    // Q3a - Vehicle parking location for train passengers
     {
-        id: "COMMENTS",
-        text: "Any additional comments or feedback about this survey or transportation in general?",
+        id: "Q3A_MONTANTS_TRAIN",
+        text: "Où avez-vous stationné votre véhicule ?",
+        image: '/plan.png',
+        imageAlt: 'Plan de la gare montrant les zones de stationnement',
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Sur le parking de la gare Sud (côté Auray)", next: "Q3A_PRIME_MONTANTS_TRAIN" },
+            { id: 2, text: "Sur le parking de la gare Nord (côté Brech)", next: "Q3A_PRIME_MONTANTS_TRAIN" },
+            { id: 3, text: "Sur le parking Mermoz au Sud", next: "Q3A_PRIME_MONTANTS_TRAIN" },
+            { id: 4, text: "Sur le parking Hulot au Sud", next: "Q3A_PRIME_MONTANTS_TRAIN" },
+            { id: 5, text: "Sur une autre place en voirie ou parking au sud de la gare", next: "Q3A_PRIME_MONTANTS_TRAIN" },
+            { id: 6, text: "Sur une autre place en voirie ou parking au nord de la gare", next: "Q3A_PRIME_MONTANTS_TRAIN" },
+            { id: 7, text: "Sur un stationnement privé (box ou place de parking privée)", next: "Q3A_PRIME_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q3a' - Parking duration for train passengers
+    {
+        id: "Q3A_PRIME_MONTANTS_TRAIN",
+        text: "Combien de temps allez-vous laisser votre voiture stationnée ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Moins de 2 heures", next: "Q4_MONTANTS_TRAIN" },
+            { id: 2, text: "Une demi-journée (entre 2 et 4 heures)", next: "Q4_MONTANTS_TRAIN" },
+            { id: 3, text: "Une journée entière (entre 4h et 12h)", next: "Q4_MONTANTS_TRAIN" },
+            { id: 4, text: "2 à 3 jours", next: "Q4_MONTANTS_TRAIN" },
+            { id: 5, text: "3 à 6 jours", next: "Q4_MONTANTS_TRAIN" },
+            { id: 6, text: "1 semaine ou plus", next: "Q4_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q3b - Bus line for train passengers
+    {
+        id: "Q3B_MONTANTS_TRAIN",
+        text: "Quelle ligne de bus/car avez-vous emprunté ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Ligne BreizhGo n°1 --(Belz-Plouharnel-Carnac-Auray)", next: "Q4_MONTANTS_TRAIN" },
+            { id: 2, text: "Ligne BreizhGo n°5 (Baud-Auray-Vannes)", next: "Q4_MONTANTS_TRAIN" },
+            { id: 3, text: "Ligne BreizhGo n°6 (Baden-Auray)", next: "Q4_MONTANTS_TRAIN" },
+            { id: 4, text: "Ligne BreizhGo n°18 (Belz-Auray)", next: "Q4_MONTANTS_TRAIN" },
+            { id: 5, text: "Ligne de car scolaire", next: "Q4_MONTANTS_TRAIN" },
+            { id: 6, text: "Auray Bus -- ligne rouge", next: "Q4_MONTANTS_TRAIN" },
+            { id: 7, text: "Auray Bus -- ligne jaune", next: "Q4_MONTANTS_TRAIN" },
+            { id: 8, text: "Autre", next: "Q3B_AUTRE_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q3b - Autre bus line for train passengers
+    {
+        id: "Q3B_AUTRE_MONTANTS_TRAIN",
+        text: "Préciser la ligne (Exemple : Flixbus, Blablabus) :",
         type: 'freeText',
-        freeTextPlaceholder: "Share any additional thoughts... (Optional)",
+        freeTextPlaceholder: "Préciser",
+        next: "Q4_MONTANTS_TRAIN"
+    },
+
+    // Q3d - Bike/scooter parking for train passengers
+    {
+        id: "Q3D_MONTANTS_TRAIN",
+        text: "Où avez-vous stationné votre vélo/trottinette ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Sur les arceaux sous les abris côté parvis Sud", next: "Q4_MONTANTS_TRAIN" },
+            { id: 2, text: "Sous l'abri sécurisé Breizhgo côté parvis Sud", next: "Q4_MONTANTS_TRAIN" },
+            { id: 3, text: "Sur les arceaux sous les abris côté parking Nord", next: "Q4_MONTANTS_TRAIN" },
+            { id: 4, text: "Sous l'abri sécurisé Breizhgo côté parking Nord", next: "Q4_MONTANTS_TRAIN" },
+            { id: 5, text: "Je le transporte avec moi dans le train", next: "Q4_MONTANTS_TRAIN" },
+            { id: 6, text: "Autre", next: "Q3D_AUTRE_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q3d - Autre bike parking for train passengers
+    {
+        id: "Q3D_AUTRE_MONTANTS_TRAIN",
+        text: "Préciser l'emplacement :",
+        type: 'freeText',
+        freeTextPlaceholder: "Préciser",
+        next: "Q4_MONTANTS_TRAIN"
+    },
+
+    // Q4 - TER subscription for train passengers
+    {
+        id: "Q4_MONTANTS_TRAIN",
+        text: "Possédez-vous un abonnement TER ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Oui", next: "Q4A_MONTANTS_TRAIN" },
+            { id: 2, text: "Non", next: "Q5_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q4a - TER subscription type for train passengers
+    {
+        id: "Q4A_MONTANTS_TRAIN",
+        text: "Quel type d'abonnement possédez-vous ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Hebdo", next: "Q5_MONTANTS_TRAIN" },
+            { id: 2, text: "Mensuel", next: "Q5_MONTANTS_TRAIN" },
+            { id: 3, text: "Annuel", next: "Q5_MONTANTS_TRAIN" },
+            { id: 4, text: "Scolaire", next: "Q5_MONTANTS_TRAIN" },
+            { id: 5, text: "Autre", next: "Q4A_AUTRE_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q4a - Autre subscription type for train passengers
+    {
+        id: "Q4A_AUTRE_MONTANTS_TRAIN",
+        text: "Préciser le type d'abonnement :",
+        type: 'freeText',
+        freeTextPlaceholder: "Préciser",
+        next: "Q5_MONTANTS_TRAIN"
+    },
+
+    // Q5 - Final destination station for train passengers
+    {
+        id: "Q5_MONTANTS_TRAIN",
+        text: "Quelle sera votre gare de destination finale ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Paris Montparnasse", next: "Q6_MONTANTS_TRAIN" },
+            { id: 2, text: "Rennes", next: "Q6_MONTANTS_TRAIN" },
+            { id: 3, text: "Lorient", next: "Q6_MONTANTS_TRAIN" },
+            { id: 4, text: "Vannes", next: "Q6_MONTANTS_TRAIN" },
+            { id: 5, text: "Nantes", next: "Q6_MONTANTS_TRAIN" },
+            { id: 6, text: "Quimper", next: "Q6_MONTANTS_TRAIN" },
+            { id: 7, text: "Redon", next: "Q6_MONTANTS_TRAIN" },
+            { id: 8, text: "Questembert", next: "Q6_MONTANTS_TRAIN" },
+            { id: 9, text: "Autre", next: "Q5_AUTRE_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q5 - Autre destination for train passengers
+    {
+        id: "Q5_AUTRE_MONTANTS_TRAIN",
+        text: "Préciser la gare de destination :",
+        type: 'gare',
+        next: "Q6_MONTANTS_TRAIN"
+    },
+
+    // Q6 - Trip purpose for train passengers
+    {
+        id: "Q6_MONTANTS_TRAIN",
+        text: "Quel est le motif de votre déplacement en train ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Je me rends sur mon lieu de travail", next: "Q7_MONTANTS_TRAIN" },
+            { id: 2, text: "Je me rends sur mon lieu d'études", next: "Q7_MONTANTS_TRAIN" },
+            { id: 3, text: "Je rentre à mon domicile principal", next: "Q6A_MONTANTS_TRAIN" },
+            { id: 4, text: "Déplacement professionnel", next: "Q7_MONTANTS_TRAIN" },
+            { id: 5, text: "Loisirs, tourisme", next: "Q7_MONTANTS_TRAIN" },
+            { id: 6, text: "Autres", next: "Q6_AUTRE_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q6 - Autre trip purpose for train passengers
+    {
+        id: "Q6_AUTRE_MONTANTS_TRAIN",
+        text: "Préciser le motif (Achats, démarches administratives, RDV médical...) :",
+        type: 'freeText',
+        freeTextPlaceholder: "Préciser",
+        next: "Q7_MONTANTS_TRAIN"
+    },
+
+    // Q6a - Reason for coming to Auray for train passengers
+    {
+        id: "Q6A_MONTANTS_TRAIN",
+        text: "Quel était la raison de votre venue à Auray ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Travail", next: "Q7_MONTANTS_TRAIN" },
+            { id: 2, text: "Études", next: "Q7_MONTANTS_TRAIN" },
+            { id: 3, text: "Déplacement professionnel", next: "Q7_MONTANTS_TRAIN" },
+            { id: 4, text: "Loisirs, tourisme", next: "Q7_MONTANTS_TRAIN" },
+            { id: 5, text: "Autres (Achats, démarches administratives, RDV médical, visite...)", next: "Q7_MONTANTS_TRAIN" }
+        ]
+    },
+
+    // Q7 - Improvement suggestions for train passengers
+    {
+        id: "Q7_MONTANTS_TRAIN",
+        text: "Selon vous, que faudrait-il faire en priorité pour améliorer les conditions d'accès à cette gare ?",
+        type: 'freeText',
+        freeTextPlaceholder: "Noter seulement les mots clés",
+        next: "end"
+    },
+
+
+    // ============ SECTION MONTANTS CAR ============
+    {
+        id: "Q2_MONTANTS_CAR",
+        text: "Quelle est l'origine de votre déplacement ? D'où êtes-vous parti pour arriver à la gare routière ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Auray", next: "Q2A_MONTANTS_CAR" },
+            { id: 2, text: "Brech", next: "Q2A_MONTANTS_CAR" },
+            { id: 3, text: "Autre commune", next: "Q2_AUTRE_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q2 - Autre commune for bus/car passengers
+    {
+        id: "Q2_AUTRE_MONTANTS_CAR",
+        text: "Préciser nom de la commune :",
+        type: 'commune',
+        next: "Q3_MONTANTS_CAR"
+    },
+
+    // Q2a - Street in Auray/Brech for bus/car passengers
+    {
+        id: "Q2A_MONTANTS_CAR",
+        text: "De quelle rue venez-vous ?",
+        type: 'street',
+        next: "Q3_MONTANTS_CAR"
+    },
+
+    // Q3 - Transport mode to bus station
+    {
+        id: "Q3_MONTANTS_CAR",
+        text: "Quel mode de transport avez-vous utilisé pour vous rendre à la gare routière ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "À pied", next: "Q4_MONTANTS_CAR" },
+            { id: 2, text: "En voiture -- en tant que conducteur", next: "Q3A_MONTANTS_CAR" },
+            { id: 3, text: "En voiture -- en tant que passager", next: "Q4_MONTANTS_CAR" },
+            { id: 4, text: "En covoiturage avec un autre usager du train", next: "Q4_MONTANTS_CAR" },
+            { id: 5, text: "En train", next: "Q3B_MONTANTS_CAR" },
+            { id: 6, text: "À vélo", next: "Q3D_MONTANTS_CAR" },
+            { id: 7, text: "En trottinette", next: "Q3D_MONTANTS_CAR" },
+            { id: 8, text: "En Taxi/VTC", next: "Q4_MONTANTS_CAR" },
+            { id: 9, text: "En 2 roues Motorisé (Moto, scooter...)", next: "Q3A_MONTANTS_CAR" },
+            { id: 10, text: "En bus/car - je fais une correspondance", next: "Q4_MONTANTS_CAR" },
+            { id: 11, text: "Autre", next: "Q3_AUTRE_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q3 - Autre transport mode for bus/car passengers
+    {
+        id: "Q3_AUTRE_MONTANTS_CAR",
+        text: "Préciser le mode de transport :",
+        type: 'freeText',
+        freeTextPlaceholder: "Préciser",
+        next: "Q4_MONTANTS_CAR"
+    },
+
+    // Q3a - Vehicle parking for bus/car passengers
+    {
+        id: "Q3A_MONTANTS_CAR",
+        text: "Où avez-vous stationné votre véhicule ?",
+        image: '/plan.png',
+        imageAlt: 'Plan de la gare montrant les zones de stationnement',
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Sur le parking de la gare Sud (côté Auray)", next: "Q3A_PRIME_MONTANTS_CAR" },
+            { id: 2, text: "Sur le parking de la gare Nord (côté Brech)", next: "Q3A_PRIME_MONTANTS_CAR" },
+            { id: 3, text: "Sur le parking Mermoz au Sud", next: "Q3A_PRIME_MONTANTS_CAR" },
+            { id: 4, text: "Sur le parking Hulot au Sud", next: "Q3A_PRIME_MONTANTS_CAR" },
+            { id: 5, text: "Sur une autre place en voirie ou parking au sud de la gare", next: "Q3A_PRIME_MONTANTS_CAR" },
+            { id: 6, text: "Sur une autre place en voirie ou parking au nord de la gare", next: "Q3A_PRIME_MONTANTS_CAR" },
+            { id: 7, text: "Sur un stationnement privé (box ou place de parking privée)", next: "Q3A_PRIME_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q3a' - Parking duration for bus/car passengers
+    {
+        id: "Q3A_PRIME_MONTANTS_CAR",
+        text: "Combien de temps allez-vous laisser votre voiture stationnée ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Moins de 2 heures", next: "Q4_MONTANTS_CAR" },
+            { id: 2, text: "Une demi-journée (entre 2 et 4 heures)", next: "Q4_MONTANTS_CAR" },
+            { id: 3, text: "Une journée entière (entre 4h et 12h)", next: "Q4_MONTANTS_CAR" },
+            { id: 4, text: "2 à 3 jours", next: "Q4_MONTANTS_CAR" },
+            { id: 5, text: "3 à 6 jours", next: "Q4_MONTANTS_CAR" },
+            { id: 6, text: "1 semaine ou plus", next: "Q4_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q3b - Train type for bus/car passengers
+    {
+        id: "Q3B_MONTANTS_CAR",
+        text: "Avec quel type de train êtes-vous arrivé ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "TER", next: "Q4_MONTANTS_CAR" },
+            { id: 2, text: "TGV", next: "Q4_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q3d - Bike/scooter parking for bus/car passengers
+    {
+        id: "Q3D_MONTANTS_CAR",
+        text: "Où avez-vous stationné votre vélo/trottinette ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Sur les arceaux sous les abris côté parvis Sud", next: "Q4_MONTANTS_CAR" },
+            { id: 2, text: "Sous l'abri sécurisé Breizhgo côté parvis Sud", next: "Q4_MONTANTS_CAR" },
+            { id: 3, text: "Sur les arceaux sous les abris côté parking Nord", next: "Q4_MONTANTS_CAR" },
+            { id: 4, text: "Sous l'abri sécurisé Breizhgo côté parking Nord", next: "Q4_MONTANTS_CAR" },
+            { id: 5, text: "Je le transporte avec moi dans le train", next: "Q4_MONTANTS_CAR" },
+            { id: 6, text: "Autre", next: "Q3D_AUTRE_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q3d - Autre bike parking for bus/car passengers
+    {
+        id: "Q3D_AUTRE_MONTANTS_CAR",
+        text: "Préciser l'emplacement :",
+        type: 'freeText',
+        freeTextPlaceholder: "Préciser",
+        next: "Q4_MONTANTS_CAR"
+    },
+
+    // Q4 - BreizhGo subscription for bus/car passengers
+    {
+        id: "Q4_MONTANTS_CAR",
+        text: "Possédez-vous un abonnement car BreizhGo ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Oui", next: "Q4A_MONTANTS_CAR" },
+            { id: 2, text: "Non", next: "Q5_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q4a - BreizhGo subscription type for bus/car passengers
+    {
+        id: "Q4A_MONTANTS_CAR",
+        text: "Quel type d'abonnement possédez-vous ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Hebdo", next: "Q5_MONTANTS_CAR" },
+            { id: 2, text: "Mensuel", next: "Q5_MONTANTS_CAR" },
+            { id: 3, text: "Annuel", next: "Q5_MONTANTS_CAR" },
+            { id: 4, text: "Scolaire", next: "Q5_MONTANTS_CAR" },
+            { id: 5, text: "Autre", next: "Q4A_AUTRE_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q4a - Autre subscription type for bus/car passengers
+    {
+        id: "Q4A_AUTRE_MONTANTS_CAR",
+        text: "Préciser le type d'abonnement :",
+        type: 'freeText',
+        freeTextPlaceholder: "Préciser",
+        next: "Q5_MONTANTS_CAR"
+    },
+
+    // Q5 - Final destination commune for bus/car passengers
+    {
+        id: "Q5_MONTANTS_CAR",
+        text: "Quelle sera votre commune de descente ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Carnac", next: "Q6_MONTANTS_CAR" },
+            { id: 2, text: "Crac'h", next: "Q6_MONTANTS_CAR" },
+            { id: 3, text: "La Trinité-sur-mer", next: "Q6_MONTANTS_CAR" },
+            { id: 4, text: "Belz", next: "Q6_MONTANTS_CAR" },
+            { id: 5, text: "Erdeven", next: "Q6_MONTANTS_CAR" },
+            { id: 6, text: "Ploemel", next: "Q6_MONTANTS_CAR" },
+            { id: 7, text: "Baud", next: "Q6_MONTANTS_CAR" },
+            { id: 8, text: "Brech", next: "Q6_MONTANTS_CAR" },
+            { id: 9, text: "Pluvigner", next: "Q6_MONTANTS_CAR" },
+            { id: 10, text: "Auray", next: "Q6_MONTANTS_CAR" },
+            { id: 11, text: "Camors", next: "Q6_MONTANTS_CAR" },
+            { id: 12, text: "Pluneret", next: "Q6_MONTANTS_CAR" },
+            { id: 13, text: "Sainte-Anne-d'Auray", next: "Q6_MONTANTS_CAR" },
+            { id: 14, text: "Plescop", next: "Q6_MONTANTS_CAR" },
+            { id: 15, text: "Autre", next: "Q5_AUTRE_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q5 - Autre destination commune for bus/car passengers
+    {
+        id: "Q5_AUTRE_MONTANTS_CAR",
+        text: "Préciser la commune de descente :",
+        type: 'commune',
+        next: "Q6_MONTANTS_CAR"
+    },
+
+    // Q6 - Trip purpose for bus/car passengers
+    {
+        id: "Q6_MONTANTS_CAR",
+        text: "Quel est le motif de votre déplacement en car ?",
+        type: 'singleChoice',
+        options: [
+            { id: 7, text: "Je me rends sur mon lieu de travail", next: "Q7_MONTANTS_CAR" },
+            { id: 8, text: "Je me rends sur mon lieu d'études", next: "Q7_MONTANTS_CAR" },
+            { id: 9, text: "Je rentre à mon domicile principal", next: "Q6A_MONTANTS_CAR" },
+            { id: 10, text: "Déplacement professionnel", next: "Q7_MONTANTS_CAR" },
+            { id: 11, text: "Loisirs, tourisme", next: "Q7_MONTANTS_CAR" },
+            { id: 12, text: "Autres", next: "Q6_AUTRE_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q6 - Autre trip purpose for bus/car passengers
+    {
+        id: "Q6_AUTRE_MONTANTS_CAR",
+        text: "Préciser le motif (Achats, démarches administratives, RDV médical...) :",
+        type: 'freeText',
+        freeTextPlaceholder: "Préciser",
+        next: "Q7_MONTANTS_CAR"
+    },
+
+    // Q6a - Reason for coming to Auray for bus/car passengers
+    {
+        id: "Q6A_MONTANTS_CAR",
+        text: "Quel était la raison de votre venue à Auray ?",
+        type: 'singleChoice',
+        options: [
+            { id: 6, text: "Travail", next: "Q7_MONTANTS_CAR" },
+            { id: 7, text: "Études", next: "Q7_MONTANTS_CAR" },
+            { id: 8, text: "Déplacement professionnel", next: "Q7_MONTANTS_CAR" },
+            { id: 9, text: "Loisirs, tourisme", next: "Q7_MONTANTS_CAR" },
+            { id: 10, text: "Autres (Achats, démarches administratives, RDV médical, visite...)", next: "Q7_MONTANTS_CAR" }
+        ]
+    },
+
+    // Q7 - Improvement suggestions for bus/car passengers
+    {
+        id: "Q7_MONTANTS_CAR",
+        text: "Selon vous, que faudrait-il faire en priorité pour améliorer les conditions d'accès à cette gare routière ?",
+        type: 'freeText',
+        freeTextPlaceholder: "Noter seulement les mots clés",
+        next: "end"
+    },
+
+    // SECTION ACCOMPAGNATEURS
+    {
+        id: "Q2_ACCOMPAGNATEURS",
+        text: "Quelle est l'origine de votre déplacement ? D'où êtes-vous parti pour arriver à la gare ?",
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Auray", next: "Q2A_ACCOMPAGNATEURS" },
+            { id: 2, text: "Brech", next: "Q2A_ACCOMPAGNATEURS" },
+            { id: 3, text: "Autre commune", next: "Q2_AUTRE_ACCOMPAGNATEURS" }
+        ]
+    },
+
+    // Q2 - Autre commune for companions
+    {
+        id: "Q2_AUTRE_ACCOMPAGNATEURS",
+        text: "Préciser nom de la commune :",
+        type: 'commune',
+        next: "Q3_ACCOMPAGNATEURS"
+    },
+
+    // Q2a - Street in Auray/Brech for companions
+    {
+        id: "Q2A_ACCOMPAGNATEURS",
+        text: "De quelle rue venez-vous ?",
+        type: 'street',
+        next: "Q3_ACCOMPAGNATEURS"
+    },
+
+    // Q3 - Transport mode for companions
+    {
+        id: "Q3_ACCOMPAGNATEURS",
+        text: "Quel mode de transport avez-vous utilisé pour vous rendre à la gare ?",
+       
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "À pied", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 2, text: "En voiture -- en tant que conducteur", next: "Q3A_ACCOMPAGNATEURS" },
+            { id: 3, text: "En voiture -- en tant que passager", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 4, text: "En covoiturage avec un autre usager du train", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 5, text: "En bus/car", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 6, text: "À vélo", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 7, text: "En trottinette", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 8, text: "En Taxi/VTC", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 9, text: "En 2 roues Motorisé (Moto, scooter...)", next: "Q3A_ACCOMPAGNATEURS" },
+            { id: 10, text: "Autre", next: "Q3_AUTRE_ACCOMPAGNATEURS" }
+        ]
+    },
+
+    // Q3 - Autre transport for companions
+    {
+        id: "Q3_AUTRE_ACCOMPAGNATEURS",
+        text: "Préciser le mode de transport :",
+        type: 'freeText',
+        freeTextPlaceholder: "Préciser",
+        next: "Q4_ACCOMPAGNATEURS"
+    },
+
+    // Q3a - Vehicle parking for companions
+    {
+        id: "Q3A_ACCOMPAGNATEURS",
+        text: "Où avez-vous stationné votre véhicule ?",
+        image: '/plan.png',
+        imageAlt: 'Plan de la gare montrant les zones de stationnement',
+        type: 'singleChoice',
+        options: [
+            { id: 1, text: "Sur le parking de la gare Sud (côté Auray)", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 2, text: "Sur le parking de la gare Nord (côté Brech)", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 3, text: "Sur le parking Mermoz au Sud", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 4, text: "Sur le parking Hulot au Sud", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 5, text: "Sur une autre place en voirie ou parking au sud de la gare", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 6, text: "Sur une autre place en voirie ou parking au nord de la gare", next: "Q4_ACCOMPAGNATEURS" },
+            { id: 7, text: "Sur un stationnement privé (box ou place de parking privée)", next: "Q4_ACCOMPAGNATEURS" }
+        ]
+    },
+
+    // Q4 - Final question for companions
+    {
+        id: "Q4_ACCOMPAGNATEURS",
+        text: "Selon vous, que faudrait-il faire en priorité pour améliorer les conditions d'accès à cette gare ?",
+        type: 'freeText',
+        freeTextPlaceholder: "Noter seulement les mots clés",
         next: "end"
     }
 ];
 
-/*
-🎯 FEATURES DEMONSTRATED IN THIS COMPREHENSIVE SURVEY:
-
-📋 QUESTION TYPES:
-✅ singleChoice - Basic single selection questions
-✅ multipleChoice - Multiple selection with various options
-✅ freeText - Text input with and without validation
-✅ commune - French municipality selector
-✅ station - Station/transport stop selector  
-✅ street - Street name selector
-✅ gare - Train station selector
-
-🔀 CONDITIONAL LOGIC:
-✅ condition - Show questions only if conditions are met
-✅ conditionalText - Change question text based on previous answers
-✅ conditionalNext - Route to different questions based on previous answers
-✅ next_if_selected - Go to precision questions if specific options selected
-✅ fallbackNext - Where to go if conditions aren't met
-✅ Survey termination - End survey early for certain responses
-
-🧠 ADVANCED FEATURES:
-✅ Complex AND/OR conditions ("AGE >= 2 AND AGE <= 3")
-✅ Nested conditional routing with multiple criteria
-✅ Work station question integration (poste-travail-question-id)
-✅ Numeric validation for postal codes and numbers
-✅ Multiple precision questions for "Other" options
-✅ Dynamic question text based on survey context
-✅ Comprehensive demographic collection
-✅ Multi-path survey flow with rejoining
-
-📊 SURVEY FLOW COMPLEXITY:
-- 20+ different possible paths through the survey
-- Age-based routing (minors, students, workers, retirees)
-- Employment-based conditional questions
-- Transport mode specific deep dives
-- Satisfaction-based improvement gathering
-- Demographic collection with privacy options
-- Optional contact information collection
-
-This demonstrates EVERY feature implemented in the survey system!
-*/ 

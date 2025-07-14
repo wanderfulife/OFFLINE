@@ -7,16 +7,19 @@
 
     <div class="content-container">
       <!-- Enqueteur Input Step -->
-      <div v-if="currentStep === 'enqueteur'">
-        <h2>Prénom enqueteur :</h2>
-        <input class="form-control" type="text" v-model="enqueteurInputRef" />
-        <button
-          v-if="enqueteurInputRef.trim()"
-          @click="setEnqueteur"
-          class="btn-next"
-        >
-          Suivant
-        </button>
+      <div v-if="currentStep === 'enqueteur'" class="enqueteur-step">
+        <div class="enqueteur-content">
+          <img class="logo logo-center" src="../assets/Alycelogo.webp" alt="Logo Alyce" />
+          <h2>Prénom enqueteur :</h2>
+          <input class="form-control" type="text" v-model="enqueteurInputRef" />
+          <button
+            v-if="enqueteurInputRef.trim()"
+            @click="setEnqueteur"
+            class="btn-next"
+          >
+            Suivant
+          </button>
+        </div>
       </div>
 
       <!-- Start Survey Step (now potentially skipped if enqueteur is set) -->
@@ -217,8 +220,8 @@
         </button>
       </div>
 
-      <!-- Logo -->
-      <img class="logo" src="../assets/Alycelogo.webp" alt="Logo Alyce" />
+      <!-- Logo (only shown when not on enqueteur step) -->
+      <img v-if="currentStep !== 'enqueteur'" class="logo" src="../assets/Alycelogo.webp" alt="Logo Alyce" />
     </div>
 
     <!-- Image Zoom Modal -->
@@ -1373,15 +1376,15 @@ html, body {
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Use viewport height instead of 100% */
-  min-height: -webkit-fill-available; /* For mobile Safari */
+  height: 100vh; /* Fixed height instead of min-height */
+  height: -webkit-fill-available; /* For mobile Safari */
   width: 100%;
   background-color: #2a3b63;
   color: white;
   padding: 0;
   /* Prevent scrolling issues on mobile */
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden; /* Prevent both x and y overflow */
 }
 
 .content-container {
@@ -1389,7 +1392,8 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 20px 0 20px; /* Remove bottom padding that creates the line */
+  justify-content: center; /* Center content vertically */
+  padding: 10px 20px; /* Reduced padding for mobile */
   width: 100%;
   max-width: 700px;
   margin: 0 auto;
@@ -1397,6 +1401,7 @@ html, body {
   /* Prevent content jumping */
   position: relative;
   background-color: #2a3b63; /* Ensure content container also has background */
+  overflow-y: auto; /* Allow scrolling within content if needed */
 }
 
 /* Add a fallback for very short content */
@@ -1450,18 +1455,18 @@ html, body {
 .form-control {
   width: 100%; 
   max-width: 400px; 
-  padding: 10px;
-  border-radius: 5px;
+  padding: 12px;
+  border-radius: 8px;
   border: 1px solid white;
   background-color: #333; 
   color: white;
   font-size: 16px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   text-align: center; /* Center align text and placeholder */
   /* Prevent zoom on iOS */
   font-size: 16px;
   -webkit-appearance: none;
-  -webkit-border-radius: 5px;
+  -webkit-border-radius: 8px;
 }
 
 /* Prevent iOS zoom on input focus */
@@ -1487,10 +1492,10 @@ html, body {
   width: 100%; 
   max-width: 400px; 
   color: white;
-  padding: 15px;
-  margin-top: 15px; /* Standardized top margin */
+  padding: 12px 15px;
+  margin-top: 10px; /* Reduced margin for mobile */
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
   text-align: center; /* Ensure text is centered */
@@ -1581,8 +1586,33 @@ html, body {
 .logo {
   max-width: 25%; 
   height: auto;
-  margin-top: 40px; 
-  margin-bottom: 0; /* Remove the margin that was creating the line */
+  margin-top: 20px; 
+  margin-bottom: 0;
+}
+
+.logo-center {
+  max-width: 150px; 
+  height: auto;
+  margin: 0 0 30px 0; /* Centered positioning for enqueteur step */
+}
+
+.enqueteur-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.enqueteur-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
 }
 
 .progress-bar {
@@ -1607,19 +1637,45 @@ html, body {
   
   /* Reduce padding on mobile for better space usage */
   .content-container {
-    padding: 15px;
+    padding: 5px 15px;
+  }
+  
+  .enqueteur-step {
+    padding: 10px;
+  }
+  
+  .logo-center {
+    max-width: 120px;
+    margin-bottom: 20px;
+  }
+  
+  .enqueteur-content h2 {
+    margin: 10px 0;
+    font-size: 1.5rem;
   }
   
   /* Ensure proper spacing on small screens */
   .question-container {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
   }
   
   /* Mobile-specific height fixes */
   .app-container {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-    height: 100%;
+    height: 100vh;
+    height: -webkit-fill-available;
+    /* Fix for mobile browsers with dynamic viewport */
+    height: calc(var(--vh, 1vh) * 100);
+  }
+  
+  /* Optimize input spacing on mobile */
+  .form-control {
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .btn-next, .btn-return, .btn-option {
+    padding: 10px 15px;
+    margin-top: 5px;
   }
   
   /* Ensure body fills viewport on mobile */
