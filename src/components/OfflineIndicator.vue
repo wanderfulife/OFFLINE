@@ -86,13 +86,28 @@ const {
 } = useOfflineStatus()
 
 const cacheInfo = ref({ usedMB: 0, availableMB: 0 })
+const surveysToSyncCount = ref(0);
 
-watch(() => syncStatus.lastSync, (newVal) => {
-  if (newVal && syncStatus.pendingCount === 0) {
-    console.log('Sync completed successfully at:', newVal);
-    showToast('Synchronisation terminée avec succès!', { duration: 3000, type: 'success' });
+// Watch for pending surveys when coming online
+watch(isOnline, (online) => {
+  if (online && syncStatus.pendingCount > 0) {
+    surveysToSyncCount.value = syncStatus.pendingCount;
   }
 });
+
+// Watch for sync completion
+watch(() => syncStatus.pendingCount, (newCount, old) => {
+  // If count drops to 0 and we had surveys to sync, show a success message
+  if (newCount === 0 && surveysToSyncCount.value > 0) {
+    showToast(`${surveysToSyncCount.value} enquête(s) hors ligne ont été synchronisée(s) avec succès.`, { 
+      duration: 5000, 
+      type: 'success' 
+    });
+    // Reset the counter
+    surveysToSyncCount.value = 0;
+  }
+});
+
 
 // Handle manual synchronization
 const handleManualSync = async () => {

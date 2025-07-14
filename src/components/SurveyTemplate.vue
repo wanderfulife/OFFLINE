@@ -215,9 +215,6 @@
       <!-- Survey Complete Step -->
       <div v-else-if="isSurveyComplete" class="survey-complete">
         <h2>Merci pour votre réponse et bonne journée.</h2>
-        <div v-if="onlineSessionSaveCount > 0" class="session-counter">
-          {{ onlineSessionSaveCount }} enquête(s) enregistrée(s) en ligne durant cette session.
-        </div>
         <button @click="resetSurvey" class="btn-next">
           Nouveau questionnaire
         </button>
@@ -299,9 +296,9 @@ import CommuneSelector from "./CommuneSelector.vue";
 import GareSelector from "./GareSelector.vue";
 import { useOfflineData } from "../composables/useOfflineData.js";
 import { useToast } from '../composables/useToast.js';
+import { useOfflineStatus } from '../composables/useOfflineStatus.js';
 
-const onlineSessionSaveCount = ref(0);
-
+const { isOnline, syncStatus } = useOfflineStatus();
 const { showToast } = useToast();
 let offlineSaveCount = 0;
 let offlineToastTimer = null;
@@ -915,8 +912,6 @@ const finishSurvey = async () => {
       // Try to save to Firebase
       await setDoc(doc(surveyCollectionRef.value, uniqueSurveyInstanceId), surveyResult);
       console.log("Survey saved to Firebase successfully");
-      onlineSessionSaveCount.value++; // Increment the session counter
-      showToast("Enquête enregistrée en ligne.", { duration: 3000, type: 'success', id: 'online-save-toast' });
       offlineSaveCount = 0; // Reset offline count on a successful online save
     } catch (firebaseError) {
       console.log("Firebase save failed (offline), data will be queued:", firebaseError);
@@ -1064,6 +1059,30 @@ onMounted(async () => {
   }
   
   // console.log(`SurveyTemplate.vue mounted. Collection: ${props.firebaseCollectionName}, Questions: ${props.surveyQuestions?.length || 0}, Poste Question ID: ${props.posteTravailQuestionId || 'N/A'}`);
+});
+
+// This watcher shows a toast for offline saves
+watch(() => syncStatus.pendingCount, (newCount, oldCount) => {
+  if (newCount > oldCount && !isOnline.value) {
+    
+    offlineSaveCount++;
+      
+      // Clear any existing timer to debounce
+      if (offlineToastTimer) {
+        clearTimeout(offlineToastTimer);
+      }
+      
+      // Set a new timer
+      offlineToastTimer = setTimeout(() => {
+        showToast(
+          `${offlineSaveCount} enquête(s) sauvegardée(s) hors ligne.`, 
+          { duration: 5000, type: 'info', id: OFFLINE_TOAST_ID }
+        );
+        // Reset for the next batch
+        offlineSaveCount = 0; 
+      }, 500); // Debounce window of 500ms
+
+  }
 });
 
 watch(stationInput, () => {
@@ -1698,16 +1717,6 @@ const evaluateCondition = (conditionString) => {
   .zoom-image-wrapper { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 }
 /* --- End of Zoom Styles --- */
-
-.session-counter {
-  margin: 1.5rem 0;
-  padding: 0.75rem 1rem;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: var(--border-radius-md);
-  font-size: 0.9rem;
-  text-align: center;
-  color: var(--text-light);
-}
 
 /* --- Autocomplete Styles --- */
 .input-container {

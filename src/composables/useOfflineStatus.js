@@ -1,82 +1,137 @@
 // useOfflineStatus.js - Vue composable for offline/online status and PWA functionality
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 
-export function useOfflineStatus() {
-  const isOnline = ref(navigator.onLine)
-  const isInstallable = ref(false)
-  const isPWAInstalled = ref(false)
-  const syncStatus = reactive({
-    pendingCount: 0,
-    isSyncing: false,
-    lastSync: null,
-    syncError: null
-  })
+// --- STATE (defined outside the function to be a singleton) ---
+const isOnline = ref(navigator.onLine)
+const isInstallable = ref(false)
+const isPWAInstalled = ref(false)
+const syncStatus = reactive({
+  pendingCount: 0,
+  isSyncing: false,
+  lastSync: null,
+  syncError: null
+})
 
-  let deferredPrompt = null
-  let swRegistration = null
+let deferredPrompt = null
+let swRegistration = null
+let isInitialized = false // Flag to prevent multiple initializations
 
-  // Update online status
-  const updateOnlineStatus = () => {
-    isOnline.value = navigator.onLine
-    if (isOnline.value) {
-      attemptBackgroundSync()
+// --- METHODS (can be defined outside if they don't depend on component lifecycle) ---
+const updateOnlineStatus = () => {
+  isOnline.value = navigator.onLine
+  if (isOnline.value) {
+    attemptBackgroundSync()
+  }
+}
+
+const handleSWMessage = (event) => {
+  const { type, data } = event.data
+  
+  switch (type) {
+    case 'survey-synced':
+      syncStatus.pendingCount = Math.max(0, syncStatus.pendingCount - 1)
+      syncStatus.lastSync = new Date().toISOString()
+      break
+    case 'sync-error':
+      syncStatus.syncError = data.error
+      break
+  }
+}
+
+const handleBeforeInstallPrompt = (e) => {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  if (!isMobile) {
+    e.preventDefault()
+    return
+  }
+  e.preventDefault()
+  deferredPrompt = e
+  isInstallable.value = true
+}
+
+const updateSyncStatus = async () => {
+  if (!swRegistration || !swRegistration.active) return
+
+  try {
+    const messageChannel = new MessageChannel()
+    
+    const response = await new Promise((resolve) => {
+      messageChannel.port1.onmessage = (event) => {
+        resolve(event.data || { pendingCount: 0 })
+      }
+      
+      if (swRegistration.active) {
+        swRegistration.active.postMessage(
+          { type: 'GET_SYNC_STATUS' },
+          [messageChannel.port2]
+        )
+      }
+      
+      setTimeout(() => resolve({ pendingCount: 0 }), 2000)
+    })
+
+    syncStatus.pendingCount = response.pendingCount || 0
+    syncStatus.syncError = response.error || null
+  } catch (error) {
+    console.error('Failed to get sync status:', error)
+    syncStatus.syncError = 'Erreur de statut de synchronisation'
+  }
+}
+
+const attemptBackgroundSync = async () => {
+  if (swRegistration && 'sync' in window.ServiceWorkerRegistration.prototype) {
+    try {
+      await swRegistration.sync.register('survey-sync')
+      console.log('Background sync registered')
+    } catch (error) {
+      console.log('Background sync registration failed:', error)
     }
   }
+}
 
-  // Register service worker and setup PWA functionality
-  const initPWA = async () => {
-    if ('serviceWorker' in navigator) {
-      try {
-        swRegistration = await navigator.serviceWorker.register('/sw.js')
-        console.log('Service Worker registered successfully')
+export function useOfflineStatus() {
 
-        // Listen for service worker messages
-        navigator.serviceWorker.addEventListener('message', handleSWMessage)
+  // --- LOGIC (runs only once) ---
+  if (!isInitialized) {
+    isInitialized = true
 
-        // Check if app is already installed
-        if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
-          isPWAInstalled.value = true
+    const initPWA = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          swRegistration = await navigator.serviceWorker.register('/sw.js')
+          console.log('Service Worker registered successfully')
+
+          navigator.serviceWorker.addEventListener('message', handleSWMessage)
+
+          if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+            isPWAInstalled.value = true
+          }
+          
+          updateSyncStatus()
+        } catch (error) {
+          console.error('Service Worker registration failed:', error)
         }
-
-        // Update sync status on registration
-        updateSyncStatus()
-      } catch (error) {
-        console.error('Service Worker registration failed:', error)
       }
     }
+
+    onMounted(() => {
+      window.addEventListener('online', updateOnlineStatus)
+      window.addEventListener('offline', updateOnlineStatus)
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      initPWA()
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('online', updateOnlineStatus)
+      window.removeEventListener('offline', updateOnlineStatus)
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      if (swRegistration) {
+        navigator.serviceWorker.removeEventListener('message', handleSWMessage)
+      }
+    })
   }
 
-  // Handle service worker messages
-  const handleSWMessage = (event) => {
-    const { type, data } = event.data
-    
-    switch (type) {
-      case 'survey-synced':
-        syncStatus.pendingCount = Math.max(0, syncStatus.pendingCount - 1)
-        syncStatus.lastSync = new Date().toISOString()
-        break
-      case 'sync-error':
-        syncStatus.syncError = data.error
-        break
-    }
-  }
-
-  // Listen for PWA install prompt (mobile only)
-  const handleBeforeInstallPrompt = (e) => {
-    // Only show install prompt on mobile devices
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    
-    if (!isMobile) {
-      e.preventDefault()
-      return
-    }
-    
-    e.preventDefault()
-    deferredPrompt = e
-    isInstallable.value = true
-  }
-
-  // Install PWA
+  // --- METHODS EXPOSED TO COMPONENTS ---
   const installPWA = async () => {
     if (!deferredPrompt) return false
 
@@ -98,39 +153,6 @@ export function useOfflineStatus() {
     }
   }
 
-  // Get sync status from service worker
-  const updateSyncStatus = async () => {
-    if (!swRegistration || !swRegistration.active) return
-
-    try {
-      const messageChannel = new MessageChannel()
-      
-      const response = await new Promise((resolve) => {
-        messageChannel.port1.onmessage = (event) => {
-          resolve(event.data || { pendingCount: 0 })
-        }
-        
-        // Only post message if service worker is active
-        if (swRegistration.active) {
-          swRegistration.active.postMessage(
-            { type: 'GET_SYNC_STATUS' },
-            [messageChannel.port2]
-          )
-        }
-        
-        // Timeout after 2 seconds
-        setTimeout(() => resolve({ pendingCount: 0 }), 2000)
-      })
-
-      syncStatus.pendingCount = response.pendingCount || 0
-      syncStatus.syncError = response.error || null
-    } catch (error) {
-      console.error('Failed to get sync status:', error)
-      syncStatus.syncError = 'Erreur de statut de synchronisation'
-    }
-  }
-
-  // Force manual sync
   const forceSyncNow = async () => {
     if (!swRegistration || !swRegistration.active || !isOnline.value) {
       return { success: false, error: 'Pas de connexion ou service worker inactif' }
@@ -156,7 +178,6 @@ export function useOfflineStatus() {
           resolve({ success: false, error: 'Service worker inactif' })
         }
         
-        // Timeout after 10 seconds
         setTimeout(() => resolve({ success: false, error: 'Timeout de synchronisation' }), 10000)
       })
 
@@ -177,19 +198,6 @@ export function useOfflineStatus() {
     }
   }
 
-  // Attempt background sync when coming online
-  const attemptBackgroundSync = async () => {
-    if (swRegistration && 'sync' in window.ServiceWorkerRegistration.prototype) {
-      try {
-        await swRegistration.sync.register('survey-sync')
-        console.log('Background sync registered')
-      } catch (error) {
-        console.log('Background sync registration failed:', error)
-      }
-    }
-  }
-
-  // Clear all caches and data
   const clearOfflineData = async () => {
     if (!swRegistration) return false
 
@@ -222,7 +230,6 @@ export function useOfflineStatus() {
     }
   }
 
-  // Get cache storage usage
   const getCacheSize = async () => {
     if ('storage' in navigator && 'estimate' in navigator.storage) {
       try {
@@ -240,52 +247,15 @@ export function useOfflineStatus() {
     return null
   }
 
-  // Setup event listeners
-  onMounted(() => {
-    // Network status listeners
-    window.addEventListener('online', updateOnlineStatus)
-    window.addEventListener('offline', updateOnlineStatus)
-    
-    // PWA install prompt listener
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    
-    // Initialize PWA
-    initPWA()
-    
-    // Periodic sync status updates
-    const syncStatusInterval = setInterval(updateSyncStatus, 30000) // Every 30 seconds
-    
-    onUnmounted(() => {
-      clearInterval(syncStatusInterval)
-    })
-  })
-
-  // Cleanup event listeners
-  onUnmounted(() => {
-    window.removeEventListener('online', updateOnlineStatus)
-    window.removeEventListener('offline', updateOnlineStatus)
-    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.removeEventListener('message', handleSWMessage)
-    }
-  })
-
+  // --- RETURN SHARED STATE & METHODS ---
   return {
-    // Status
     isOnline,
     isInstallable,
     isPWAInstalled,
     syncStatus,
-    
-    // Actions
     installPWA,
     forceSyncNow,
     clearOfflineData,
-    getCacheSize,
-    updateSyncStatus,
-    
-    // Utilities
-    swRegistration: () => swRegistration
+    getCacheSize
   }
 }

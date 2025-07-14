@@ -1,7 +1,7 @@
 <template>
   <div class="admin-dashboard-root">
     <button class="btn-signin" @click="showSignInModal = true">
-      connexion admin
+      Admin
       <div class="connection-status" :class="{ 'online': isOnline, 'offline': !isOnline }">
         <div class="status-dot"></div>
         <span v-if="syncStatus.pendingCount > 0" class="pending-badge">{{ syncStatus.pendingCount }}</span>
@@ -17,39 +17,47 @@
           v-model="password"
           type="password"
           placeholder="Entrez le mot de passe"
+          @keyup.enter="signIn"
           class="form-control"
         />
-        <button @click="signIn" class="btn-signin">Se connecter</button>
+        <button @click="signIn" class="btn-next">Se connecter</button>
       </div>
     </div>
 
     <!-- Admin Dashboard Modal -->
-    <div v-if="showAdminDashboard" class="modal">
-      <div class="modal-content admin-dashboard">
-        <button class="close" @click="showAdminDashboard = false">
-          &times;
-        </button>
-        <img class="logo" src="../assets/Alycelogo.webp" alt="Logo Alyce" />
-        <h2>Tableau de Bord Admin</h2>
+    <div v-if="showAdminDashboard" class="admin-modal modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <img class="logo" src="../assets/Alycelogo.webp" alt="Logo Alyce" />
+          <h2>Tableau de Bord Admin</h2>
+          <button class="close" @click="showAdminDashboard = false">&times;</button>
+        </div>
+
         <div class="dashboard-content">
-          <div class="dashboard-card total">
+          <div class="dashboard-card total-card">
             <h3>Total des Enquêtes</h3>
-            <p class="big-number">{{ totalSurveys }}</p>
+            <p class="total-count">{{ totalSurveys }}</p>
           </div>
-          <div class="dashboard-card">
+
+          <div class="dashboard-card surveyors-card">
             <h3>Enquêtes par Enquêteur</h3>
-            <ul>
+            <ul class="enqueteur-list">
               <li v-for="(count, name) in surveysByEnqueteur" :key="name">
                 <span>{{ name }}</span>
                 <span class="count">{{ count }}</span>
               </li>
+               <div v-if="Object.keys(surveysByEnqueteur).length === 0" class="empty-state">
+                Aucune enquête à afficher.
+              </div>
             </ul>
           </div>
-
         </div>
-        <button @click="downloadData" class="btn-download">
-          Télécharger les Données
-        </button>
+
+        <div class="modal-footer">
+          <button @click="downloadData" class="btn-download">
+            Télécharger les Données
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -216,15 +224,10 @@ onMounted(() => {
 
 <style scoped>
 .admin-dashboard-root {
+  /* This div is now a simple container, positioning is handled by App.vue */
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.logo {
-  max-width: 100px;
-  margin: 0 auto 1.5rem auto;
-  display: block;
 }
 
 .btn-signin {
@@ -233,16 +236,19 @@ onMounted(() => {
   gap: 8px;
   background-color: var(--button-bg);
   color: var(--text-light);
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 8px 16px;
   border-radius: 999px; /* Pill shape */
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 .btn-signin:hover {
   background-color: var(--button-hover-bg);
   color: var(--primary-text);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .connection-status {
@@ -255,14 +261,15 @@ onMounted(() => {
   height: 10px;
   border-radius: 50%;
   background-color: #ef4444; /* Offline Red */
+  transition: background-color 0.3s ease;
 }
 .connection-status.online .status-dot {
   background-color: #22c55e; /* Online Green */
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-  50% { box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
 }
 
 .pending-badge {
@@ -275,6 +282,7 @@ onMounted(() => {
   line-height: 1;
 }
 
+/* Base modal styles reused for both sign-in and dashboard */
 .modal {
   position: fixed;
   top: 0;
@@ -283,10 +291,17 @@ onMounted(() => {
   height: 100%;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1001; /* Higher than the root button */
+}
+
+.signin-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .modal-content {
@@ -295,108 +310,200 @@ onMounted(() => {
   border-radius: var(--border-radius-lg);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   width: 90%;
-  max-width: 500px;
+  max-width: 400px;
   position: relative;
   border: 1px solid var(--button-bg);
 }
 
-.signin-modal {
+.signin-modal .form-control {
+  margin-bottom: 0.5rem;
+}
+
+.signin-modal .btn-next {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.signin-modal .close,
+.modal-header .close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  line-height: 1;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-light);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.signin-modal .close:hover,
+.modal-header .close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: #fff;
+}
+
+/* Base Modal styles */
+.admin-modal .modal-content {
+  background-color: var(--modal-bg);
+  color: var(--primary-text);
+  border-radius: var(--border-radius-lg);
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh; /* Limit height to prevent overflow on small screens */
+  overflow: hidden; /* Prevent content from spilling */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0; /* Reset padding for new structure */
+}
+
+.modal-header {
+  padding: 1.5rem;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header .logo {
+  max-width: 100px;
+  margin-bottom: 1rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* This style is now combined with the signin-modal close button style above */
+/*
+.modal-header .close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--text-light);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.modal-header .close:hover {
+  opacity: 1;
+}
+*/
+
+/* Main Dashboard Content */
+.dashboard-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto; /* Make the content area scroll if needed */
+  flex-grow: 1;
+}
+
+.dashboard-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-md);
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
 }
 
-.admin-dashboard {
-  text-align: center;
-}
-
-.dashboard-content {
-  margin: 2rem 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-.dashboard-card {
-  background-color: var(--primary-bg);
-  padding: 1.5rem;
-  border-radius: var(--border-radius-md);
-}
-
 .dashboard-card h3 {
-  margin-top: 0;
+  margin: 0 0 1rem 0;
   font-size: 1rem;
+  font-weight: 600;
   color: var(--text-light);
-  border-bottom: 1px solid var(--button-bg);
-  padding-bottom: 0.75rem;
-  margin-bottom: 1rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
 }
 
-.dashboard-card p.big-number {
+/* Total Surveys Card */
+.total-card .total-count {
   font-size: 3rem;
-  font-weight: bold;
-  color: var(--primary-text);
+  font-weight: 700;
+  text-align: center;
   margin: 0;
+  color: var(--primary-text);
 }
 
-.dashboard-card ul {
-  list-style-type: none;
+/* Surveyors Card */
+.surveyors-card {
+  flex-grow: 1; /* Allow this card to take more space if needed */
+  min-height: 150px; /* Ensure it has some height even when empty */
+  overflow: hidden; /* Hide overflow from children */
+}
+
+.enqueteur-list {
+  list-style: none;
   padding: 0;
   margin: 0;
-  text-align: left;
+  overflow-y: auto; /* THIS IS THE KEY: Make the list scrollable */
+  flex-grow: 1;
 }
 
-.dashboard-card li {
+.enqueteur-list li {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--button-bg);
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 1rem;
 }
 
-.dashboard-card li:last-child {
+.enqueteur-list li:last-child {
   border-bottom: none;
 }
 
-.dashboard-card li .count {
-  font-weight: bold;
-  background-color: var(--primary-accent);
+.enqueteur-list .count {
+  background-color: var(--secondary-accent);
   color: var(--primary-text);
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--border-radius-md);
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 50px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-light);
+  padding: 2rem 0;
+}
+
+
+/* Footer */
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .btn-download {
+  display: block;
   width: 100%;
   padding: 0.9rem 1rem;
   font-size: 1rem;
   font-weight: 600;
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  background-color: var(--secondary-accent);
+  transition: filter 0.2s;
+  background-color: var(--primary-accent);
   color: var(--primary-text);
-  border: 1px solid var(--secondary-accent);
+  border: none;
 }
 
 .btn-download:hover {
   filter: brightness(1.1);
-}
-
-.close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.form-control {
-  margin: 1rem 0;
-  width: 100%;
 }
 </style>
