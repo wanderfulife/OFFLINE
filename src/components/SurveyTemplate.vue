@@ -46,7 +46,7 @@
               @click="openImageZoom"
             />
             <div class="zoom-hint">
-              <span>👆 Appuyez pour agrandir</span>
+              <span class="zoom-icon">🔍</span>
             </div>
           </div>
 
@@ -1878,12 +1878,23 @@ html, body {
   right: 8px;
   background: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 6px;
+  border-radius: 50%;
+  font-size: 16px;
   font-weight: 500;
   pointer-events: none;
   backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  transition: all 0.2s ease;
+}
+
+.zoom-icon {
+  display: block;
+  opacity: 0.9;
 }
 
 /* Image Zoom Modal Styles */
@@ -1985,10 +1996,12 @@ html, body {
   }
   
   .zoom-hint {
-    font-size: 14px;
-    padding: 6px 12px;
+    font-size: 18px;
+    padding: 8px;
     bottom: 12px;
     right: 12px;
+    width: 36px;
+    height: 36px;
   }
   
   .image-zoom-container {
@@ -2016,10 +2029,12 @@ html, body {
   }
   
   .zoom-hint {
-    font-size: 11px;
-    padding: 3px 6px;
+    font-size: 14px;
+    padding: 4px;
     bottom: 6px;
     right: 6px;
+    width: 28px;
+    height: 28px;
   }
 }
 
