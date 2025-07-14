@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import Constructor from './components/Constructor.vue';
 import AdminDashboard from './components/AdminDashboard.vue';
-// import OfflineIndicator from './components/OfflineIndicator.vue';
+import Toast from './components/Toast.vue';
 
 // Define the master Firebase collection name here
 const masterFirebaseCollectionName = ref("Offline");
@@ -22,6 +22,7 @@ onMounted(async () => {
 
 <template>
   <div id="app-container">
+    <Toast />
     <!-- Offline Status Indicator - Hidden since moved to admin button -->
     <!-- <OfflineIndicator :show-debug-info="false" /> -->
     

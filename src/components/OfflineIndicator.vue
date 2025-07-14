@@ -60,8 +60,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useOfflineStatus } from '../composables/useOfflineStatus.js'
+import { useToast } from '../composables/useToast.js';
+
+const { showToast } = useToast();
 
 const props = defineProps({
   showDebugInfo: {
@@ -83,6 +86,13 @@ const {
 } = useOfflineStatus()
 
 const cacheInfo = ref({ usedMB: 0, availableMB: 0 })
+
+watch(() => syncStatus.lastSync, (newVal) => {
+  if (newVal && syncStatus.pendingCount === 0) {
+    console.log('Sync completed successfully at:', newVal);
+    showToast('Synchronisation terminée avec succès!', { duration: 3000, type: 'success' });
+  }
+});
 
 // Handle manual synchronization
 const handleManualSync = async () => {
@@ -434,5 +444,27 @@ onMounted(() => {
     padding: 6px 10px;
     font-size: 12px;
   }
+}
+
+.sync-toast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: 12px;
+  background: rgba(34, 197, 94, 0.9); /* Green background */
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  animation: fadeInOut 3s ease;
+  min-width: 300px;
+  text-align: center;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(10px); }
 }
 </style>

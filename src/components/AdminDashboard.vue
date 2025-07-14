@@ -4,6 +4,7 @@
       connexion admin
       <div class="connection-status" :class="{ 'online': isOnline, 'offline': !isOnline }">
         <div class="status-dot"></div>
+        <span v-if="syncStatus.pendingCount > 0" class="pending-badge">{{ syncStatus.pendingCount }}</span>
       </div>
     </button>
 
@@ -75,7 +76,7 @@ const surveysByEnqueteur = ref({});
 const totalSurveys = ref(0);
 
 // Use offline status composable for connection indicator
-const { isOnline } = useOfflineStatus();
+const { isOnline, syncStatus } = useOfflineStatus();
 
 const surveyCollectionRef = collection(db, props.activeFirebaseCollectionName);
 
@@ -251,21 +252,6 @@ onMounted(() => {
   gap: 8px;
 }
 
-.btn-signin::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.6s ease;
-}
-
-.btn-signin:hover::before {
-  left: 100%;
-}
-
 .btn-signin:hover {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.3) 100%);
   color: #e5e7eb;
@@ -273,12 +259,6 @@ onMounted(() => {
   border-color: rgba(59, 130, 246, 0.3);
   box-shadow: 0 6px 25px rgba(59, 130, 246, 0.15);
   transform: translateY(-2px);
-}
-
-.btn-signin:active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: all 0.1s ease;
 }
 
 /* Connection Status Indicator for Admin Button */
@@ -380,8 +360,9 @@ onMounted(() => {
 }
 
 .modal-content.admin-dashboard .dashboard-card {
-  padding: 10px !important; /* Slightly more padding */
-  margin: 0 !important; /* Force no margin */
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
 }
 
 .modal-content.admin-dashboard .dashboard-card h3 {
@@ -577,6 +558,23 @@ onMounted(() => {
 .count {
   font-weight: normal;
   color: #68d391;
+}
+
+.pending-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #f59e0b;
+  color: white;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 /* Mobile responsive improvements */

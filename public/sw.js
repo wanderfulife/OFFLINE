@@ -83,8 +83,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Handle Firebase Firestore requests - only POST requests (survey submissions)
-  if (url.origin.includes('firestore.googleapis.com') && request.method === 'POST') {
+  // Handle Firebase Firestore requests - POST for creation, PATCH for setDoc with specific ID
+  if (url.origin.includes('firestore.googleapis.com') && (request.method === 'POST' || request.method === 'PATCH')) {
     // Only handle actual document writes, not real-time listener connections
     if (url.pathname.includes('/documents/') || url.pathname.includes(':write')) {
       event.respondWith(handleFirebaseRequest(request));
@@ -122,8 +122,8 @@ async function handleFirebaseRequest(request) {
   } catch (error) {
     console.log('Firebase request failed, queuing for background sync:', error);
     
-    // If it's a POST request (survey submission), queue it for background sync
-    if (requestClone.method === 'POST') {
+    // If it's a POST or PATCH request (survey submission), queue it for background sync
+    if (requestClone.method === 'POST' || requestClone.method === 'PATCH') {
       try {
         await queueSurveyForSync(requestClone);
         

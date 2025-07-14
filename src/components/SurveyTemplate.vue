@@ -215,6 +215,9 @@
       <!-- Survey Complete Step -->
       <div v-else-if="isSurveyComplete" class="survey-complete">
         <h2>Merci pour votre réponse et bonne journée.</h2>
+        <div v-if="onlineSessionSaveCount > 0" class="session-counter">
+          {{ onlineSessionSaveCount }} enquête(s) enregistrée(s) en ligne durant cette session.
+        </div>
         <button @click="resetSurvey" class="btn-next">
           Nouveau questionnaire
         </button>
@@ -295,6 +298,14 @@ import {
 import CommuneSelector from "./CommuneSelector.vue";
 import GareSelector from "./GareSelector.vue";
 import { useOfflineData } from "../composables/useOfflineData.js";
+import { useToast } from '../composables/useToast.js';
+
+const onlineSessionSaveCount = ref(0);
+
+const { showToast } = useToast();
+let offlineSaveCount = 0;
+let offlineToastTimer = null;
+const OFFLINE_TOAST_ID = 'offline-save-toast';
 
 const props = defineProps({
   surveyQuestions: {
@@ -386,10 +397,6 @@ const zoomImage = ref(null);
 const surveyCollectionRef = computed(() =>
   collection(db, props.firebaseCollectionName)
 );
-const counterDocRef = computed(() =>
-  doc(db, `${props.firebaseCollectionName}counters`, "surveyCounter")
-);
-const docCount = ref(0);
 
 // Computed Properties
 const currentQuestionText = computed(() => {
@@ -868,16 +875,8 @@ const finishSurvey = async () => {
     isSurveyComplete.value = true;
     
     const now = new Date();
-    let uniqueSurveyInstanceId;
+    let uniqueSurveyInstanceId = crypto.randomUUID();
     
-    try {
-      uniqueSurveyInstanceId = await getNextId();
-    } catch (idError) {
-      // If we can't get Firebase ID (offline), generate a local one
-      console.warn("Failed to get Firebase ID, using local ID:", idError);
-      uniqueSurveyInstanceId = `LOCAL-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    }
-
     const surveyResult = {
       ID_questionnaire: uniqueSurveyInstanceId,
       firebase_timestamp: new Date().toISOString(),
@@ -914,10 +913,31 @@ const finishSurvey = async () => {
 
     try {
       // Try to save to Firebase
-      await addDoc(surveyCollectionRef.value, surveyResult);
+      await setDoc(doc(surveyCollectionRef.value, uniqueSurveyInstanceId), surveyResult);
       console.log("Survey saved to Firebase successfully");
+      onlineSessionSaveCount.value++; // Increment the session counter
+      showToast("Enquête enregistrée en ligne.", { duration: 3000, type: 'success', id: 'online-save-toast' });
+      offlineSaveCount = 0; // Reset offline count on a successful online save
     } catch (firebaseError) {
       console.log("Firebase save failed (offline), data will be queued:", firebaseError);
+      
+      offlineSaveCount++;
+      
+      // Clear any existing timer to debounce
+      if (offlineToastTimer) {
+        clearTimeout(offlineToastTimer);
+      }
+      
+      // Set a new timer
+      offlineToastTimer = setTimeout(() => {
+        showToast(
+          `${offlineSaveCount} enquête(s) sauvegardée(s) hors ligne.`, 
+          { duration: 5000, type: 'info', id: OFFLINE_TOAST_ID }
+        );
+        // Reset for the next batch
+        offlineSaveCount = 0; 
+      }, 500); // Debounce window of 500ms
+
       // Don't throw the error - the service worker will handle queueing
       // The survey completion should still proceed
     }
@@ -1023,28 +1043,13 @@ const resetSurvey = () => {
 const getDocCount = async () => {
   try {
     const querySnapshot = await getDocs(surveyCollectionRef.value);
-    docCount.value = querySnapshot.size;
+    // docCount.value = querySnapshot.size; // This line is no longer needed
   } catch (error) {
     console.error("Error getting document count:", error);
   }
 };
 
-const getNextId = async () => {
-  try {
-    const currentCounterDocRef = counterDocRef.value;
-    const counterDocSnap = await getDoc(currentCounterDocRef);
-    let counter = 1;
-    if (counterDocSnap.exists()) {
-      counter = counterDocSnap.data().value + 1;
-    }
-    await setDoc(currentCounterDocRef, { value: counter });
-    const prefix = props.firebaseCollectionName.substring(0,3).toUpperCase();
-    return `${prefix}-${new Date().toISOString().split('T')[0]}-${counter.toString().padStart(4, "0")}`;
-  } catch (error) {
-    console.error("Error generating next ID for submission:", error);
-    return `ERR-${Date.now()}`;
-  }
-};
+// getNextId function removed
 
 onMounted(async () => {
   getDocCount();
@@ -1402,14 +1407,7 @@ html, body {
   box-sizing: border-box;
   position: relative;
   background-color: #2a3b63;
-  min-height: 0; /* Allow the container to shrink/grow as needed */
-}
-
-/* Add a fallback for very short content */
-.content-container::after {
-  content: '';
-  flex: 1;
-  background-color: #2a3b63;
+  min-height: 0;
 }
 
 .question-container {
@@ -1418,83 +1416,57 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Prevent layout shifts */
   position: relative;
 }
 
-.question-container > h2 {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-/* Style for the direct div children of question-container (question type wrappers) */
-.question-container > div {
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 12px 20px;
+  background-color: #4a5a83;
+  border-radius: 8px;
+  transition: all 0.2s ease;
   width: 100%;
-  max-width: 400px; /* Consistent max-width */
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center their own children */
-  margin-bottom: 20px; /* Spacing before next element (e.g., Retour button or end of container) */
+  min-height: 50px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+  touch-action: manipulation;
+  margin-bottom: 10px;
 }
 
-/* Style for divs nested one level deeper within question-type wrappers (e.g., for v-for loops) */
-.question-container > div > div {
-  width: 100%; /* Ensure these take full width of their 400px parent */
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center their children if needed */
+.checkbox-label:hover {
+  background-color: #5a6a93;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-.input-container { 
+.checkbox-input {
+  margin-right: 15px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Ensure the multiple choice container is properly centered */
+.question-container > div[v-else-if*="multipleChoice"] {
+  width: 100%;
+  max-width: 450px; /* Slightly wider for better proportion */
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  position: relative;
+  gap: 0; /* Remove gap, use margin on individual items instead */
+  margin-bottom: 25px; /* More space before the next button */
 }
 
-.form-control {
-  width: 100%; 
-  max-width: 400px; 
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid white;
-  background-color: #333; 
-  color: white;
-  font-size: 16px;
-  margin-bottom: 20px;
-  text-align: center; /* Center align text and placeholder */
-  /* Prevent zoom on iOS */
-  font-size: 16px;
-  -webkit-appearance: none;
-  -webkit-border-radius: 8px;
-}
-
-/* Prevent iOS zoom on input focus */
-@media screen and (max-width: 768px) {
-  .form-control {
-    font-size: 16px !important;
-    transform: translateZ(0);
-  }
-  
-  /* Improve touch targets on mobile */
-  .btn-next,
-  .btn-return,
-  .btn-option,
-  .checkbox-label {
-    min-height: 44px; /* iOS recommended touch target size */
-  }
-  
-  /* Ensure smooth scrolling on mobile */
-  .app-container {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  /* Add extra bottom padding on mobile for better scrolling experience */
-  .content-container {
-    padding-bottom: 60px;
-  }
+/* Style the button container for multiple choice */
+.question-container > div[v-else-if*="multipleChoice"] > button {
+  margin-top: 20px; /* More space above the button */
+  max-width: 400px; /* Match the options width */
 }
 
 .btn-next,
@@ -1537,56 +1509,6 @@ html, body {
   margin-bottom: 12px; /* Add margin between options */
   display: flex;
   justify-content: center; /* Center the option */
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start; /* Align content to start within the label */
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 12px 20px; /* Reduced padding, more horizontal space */
-  background-color: #4a5a83; 
-  border-radius: 8px; /* Slightly more rounded */
-  transition: all 0.2s ease; /* Smooth transition for all properties */
-  width: 100%;
-  min-height: 50px; /* Ensure consistent height */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
-  /* Improve mobile touch */
-  -webkit-tap-highlight-color: rgba(0,0,0,0.1);
-  touch-action: manipulation;
-}
-
-.checkbox-label:hover {
-  background-color: #5a6a93; 
-  transform: translateY(-1px); /* Slight lift on hover */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Enhanced shadow on hover */
-}
-
-.checkbox-input {
-  margin-right: 15px; 
-  width: 20px; /* Slightly larger checkbox */
-  height: 20px;
-  cursor: pointer;
-  flex-shrink: 0; /* Prevent checkbox from shrinking */
-}
-
-/* Ensure the multiple choice container is properly centered */
-.question-container > div[v-else-if*="multipleChoice"] {
-  width: 100%;
-  max-width: 450px; /* Slightly wider for better proportion */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0; /* Remove gap, use margin on individual items instead */
-  margin-bottom: 25px; /* More space before the next button */
-}
-
-/* Style the button container for multiple choice */
-.question-container > div[v-else-if*="multipleChoice"] > button {
-  margin-top: 20px; /* More space above the button */
-  max-width: 400px; /* Match the options width */
 }
 
 .btn-pdf { 
@@ -2096,4 +2018,33 @@ html, body {
   }
 }
 
+.input-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid white;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  font-size: 16px;
+  -webkit-appearance: none;
+  -webkit-border-radius: 8px;
+}
+
+.session-counter {
+  margin: 15px 0;
+  padding: 10px 15px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  text-align: center;
+}
 </style>
