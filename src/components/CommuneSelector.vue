@@ -98,43 +98,46 @@ watch(() => props.postalCodePrefix, (newVal) => {
 
 <style scoped>
 .form-group {
-  position: relative; /* Needed for absolute positioning of the dropdown */
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Inherits .form-control from SurveyTemplate.vue, but we can add specifics */
+.form-control {
+  margin-bottom: 1rem;
 }
 
 .commune-dropdown {
   position: absolute;
-  width: 100%; /* Make dropdown same width as input */
-  max-height: 200px;
+  /* Position it below the second input field */
+  top: calc(2 * (0.9rem * 2 + 1rem) - 0.5rem); /* 2 * (padding + margin) - overlap */
+  width: 100%;
+  max-height: 250px;
   overflow-y: auto;
-  border: 1px solid white;
-  background-color: #333; /* Match input background */
-  color: white; /* Match input text color */
-  z-index: 1000; /* Ensure it's above other elements */
-  border-top: none; /* Remove top border if it directly touches the input above */
-  border-radius: 0 0 5px 5px; /* Rounded bottom corners */
-  /* Adjust top position to be right under the second input field */
-  /* This might need fine-tuning depending on exact input heights and margins */
-  top: calc(100% - 10px); /* Attempt to position below the last input, adjust 10px as needed */
-  left: 0;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Optional: add a subtle shadow */
+  background-color: var(--card-bg);
+  border: 1px solid var(--button-bg);
+  border-radius: var(--border-radius-md);
+  z-index: 1000;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
 .commune-option {
-  padding: 10px; /* Increased padding */
+  padding: 0.9rem 1rem;
   cursor: pointer;
-  color: white; /* Ensure text is white */
-  border-bottom: 1px solid #444; /* Subtle separator for options */
+  color: var(--text-light);
+  border-bottom: 1px solid var(--button-bg);
+  transition: all 0.2s ease-in-out;
 }
 
 .commune-option:last-child {
-  border-bottom: none; /* No border for the last item */
+  border-bottom: none;
 }
 
 .commune-option:hover {
-  background-color: #4a5a83; /* A dark blue hover, consistent with SurveyTemplate */
-}
-
-.form-control {
-  margin-bottom: 10px;
+  background-color: var(--button-hover-bg);
+  color: var(--primary-text);
 }
 </style>

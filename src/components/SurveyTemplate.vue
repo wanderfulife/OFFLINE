@@ -31,7 +31,7 @@
       </div>
 
       <!-- Survey Questions Step -->
-      <div v-else-if="currentStep === 'survey' && !isSurveyComplete && currentQuestion">
+      <div v-else-if="currentStep === 'survey' && !isSurveyComplete && currentQuestion" class="survey-question-wrapper">
         <div class="question-container">
           <h2>{{ currentQuestionText }}</h2>
 
@@ -1357,412 +1357,178 @@ const evaluateCondition = (conditionString) => {
 </script>
 
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  /* Improve mobile scrolling behavior */
-  -webkit-overflow-scrolling: touch;
-  overflow-x: hidden;
-  background-color: #2a3b63; /* Ensure body background matches */
-  /* Prevent bounce scrolling on iOS while allowing normal scrolling */
-  overscroll-behavior: contain;
-}
-
-html, body {
-  /* Ensure proper height handling on mobile */
-  height: 100%;
-  position: relative;
-  background-color: #2a3b63; /* Ensure body has the same background */
-}
-
+/* Remove all old styles and replace with this */
 .app-container {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Allow content to grow beyond viewport */
-  min-height: -webkit-fill-available; /* For mobile Safari */
-  width: 100%;
-  background-color: #2a3b63;
-  color: white;
-  padding: 0;
-  position: relative;
-  overflow-y: auto; /* Allow vertical scrolling */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  flex: 1;
 }
 
 .content-container {
-  flex: 1;
+  width: 100%;
+  max-width: 500px; /* Optimal width for forms on larger screens */
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* Start from TOP, not center */
-  padding: 20px 20px 40px 20px; /* More bottom padding for scrolling space */
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-  box-sizing: border-box;
-  position: relative;
-  background-color: #2a3b63;
-  min-height: 0;
+  justify-content: center;
+  align-items: center; /* Add this for horizontal centering */
+  flex: 1;
 }
 
 .question-container {
   width: 100%;
-  margin-bottom: 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
 }
 
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 12px 20px;
-  background-color: #4a5a83;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  width: 100%;
-  min-height: 50px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  -webkit-tap-highlight-color: rgba(0,0,0,0.1);
-  touch-action: manipulation;
-  margin-bottom: 10px;
-}
-
-.checkbox-label:hover {
-  background-color: #5a6a93;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.checkbox-input {
-  margin-right: 15px;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-/* Ensure the multiple choice container is properly centered */
-.question-container > div[v-else-if*="multipleChoice"] {
-  width: 100%;
-  max-width: 450px; /* Slightly wider for better proportion */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0; /* Remove gap, use margin on individual items instead */
-  margin-bottom: 25px; /* More space before the next button */
-}
-
-/* Style the button container for multiple choice */
-.question-container > div[v-else-if*="multipleChoice"] > button {
-  margin-top: 20px; /* More space above the button */
-  max-width: 400px; /* Match the options width */
-}
-
-.btn-next,
-.btn-return,
-.btn-option,
-.btn-pdf { 
-  width: 100%; 
-  max-width: 400px; 
-  color: white;
-  padding: 12px 15px;
-  margin-top: 10px; /* Reduced margin for mobile */
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  text-align: center; /* Ensure text is centered */
-  /* Improve mobile touch */
-  -webkit-tap-highlight-color: rgba(0,0,0,0.1);
-  touch-action: manipulation;
-}
-
-.btn-next {
-  background-color: green;
-  /* margin-top: 20px; */ /* Removed to use standardized 15px */
-}
-
-.btn-return {
-  background-color: grey;
-  /* margin-top: 30px; */ /* Removed to use standardized 15px */
-}
-
-.btn-option {
-  background-color: #4a5a83; 
-  /* text-align: left; */ /* Removed to allow text-align: center from group */
-}
-
-.checkbox-option {
-  width: 100%;
-  max-width: 400px; 
-  margin-bottom: 12px; /* Add margin between options */
-  display: flex;
-  justify-content: center; /* Center the option */
-}
-
-.btn-pdf { 
-  background-color: #3498db; 
-  display: block;
-}
-
-
-.logo {
-  max-width: 25%; 
-  height: auto;
-  margin-top: 20px; 
-  margin-bottom: 0;
-}
-
-.logo-center {
-  max-width: 80px; /* Smaller logo */
-  height: auto;
-  margin: 10px 0; /* Minimal top margin */
-}
-
-.enqueteur-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* Start from TOP */
-  width: 100%;
-  padding: 10px; /* Minimal padding */
-  box-sizing: border-box;
-}
-
-.enqueteur-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 400px;
+.question-container h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
   text-align: center;
+  margin-bottom: 2rem;
 }
 
-.enqueteur-content h2 {
-  margin: 10px 0; /* Compact margins */
-  font-size: 1.4rem;
-}
-
-.enqueteur-content .form-control {
-  margin: 10px 0; /* Compact margins */
-}
-
-.enqueteur-content .btn-next {
-  margin: 10px 0; /* Compact margins */
-}
-
-.progress-bar {
-  width: 100%;
-  height: 10px;
-  background-color: #e0e0e0; 
-  position: relative; 
-  overflow: hidden; 
-  margin-bottom: 20px; 
-}
-
-.progress {
-  height: 100%;
-  background-color: #4caf50; 
-  transition: width 0.3s ease-in-out; 
-}
-
-@media screen and (max-width: 480px) {
-  .form-control, .btn-next, .btn-return, .btn-option, .checkbox-option {
-    max-width: 90%; 
-  }
-  
-  /* Compact mobile layout - NO SCROLLING */
-  .content-container {
-    padding: 10px 15px 5px 15px; /* Minimal padding */
-  }
-  
-  .enqueteur-step {
-    padding: 5px; /* Minimal padding */
-  }
-  
-  .logo-center {
-    max-width: 70px; /* Even smaller on mobile */
-    margin: 5px 0; /* Minimal margins */
-  }
-  
-  .enqueteur-content h2 {
-    margin: 8px 0; /* Minimal margins */
-    font-size: 1.2rem; /* Smaller font */
-  }
-  
-  .enqueteur-content .form-control {
-    margin: 8px 0; /* Minimal margins */
-    padding: 8px; /* Smaller padding */
-  }
-  
-  .enqueteur-content .btn-next {
-    margin: 8px 0; /* Minimal margins */
-    padding: 8px 15px; /* Smaller padding */
-  }
-  
-  /* Ensure proper spacing on small screens */
-  .question-container {
-    margin-bottom: 15px;
-  }
-  
-  /* Mobile-specific height fixes */
-  .app-container {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-  }
-  
-  /* Ensure body fills viewport on mobile */
-  body {
-    height: 100vh;
-    height: -webkit-fill-available;
-  }
-  
-  html {
-    height: 100vh;
-    height: -webkit-fill-available;
-  }
-}
-
-.modal {
-  position: fixed; 
-  z-index: 9999; 
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.7); 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-content {
-  width: 90%; 
-  height: 90%; 
-  max-width: 1000px; 
-  max-height: 80vh; 
-  position: relative;
-  background-color: #fff; 
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  overflow: auto; 
-}
-
-.pdf-content iframe {
-  border: none;
-  width: 100%;
-  height: calc(100% - 40px); 
-  background: #f0f0f0; 
-}
-
-.close { 
-  position: absolute; 
-  right: 10px;
-  top: 10px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #eee;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 20px;
-  color: #333;
-  z-index: 10000; 
-}
-
-.close:hover {
-  background: #ddd;
-}
-
-@media screen and (min-width: 768px) {
-  .modal-content {
-    padding: 30px;
-  }
-}
-
-.autocomplete-results {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  border: 1px solid #ccc;
-  max-height: 150px;
-  overflow-y: auto;
-  position: absolute; 
-  width: 100%; 
-  background-color: #fff; 
-  color: #333; 
-  z-index: 1000; 
-  border-radius: 0 0 5px 5px; 
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  top: 100%;
-  left: 0;
-}
-
-.autocomplete-results li {
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee; 
-}
-
-.autocomplete-results li:last-child {
-  border-bottom: none;
-}
-
-.autocomplete-results li:hover {
-  background-color: #f0f0f0; 
-}
-
-.start-survey-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  width: 100%;
-  /* Prevent content jumping when transitioning */
-  min-height: 200px;
-  justify-content: center;
-}
-
-.start-survey-container h2 {
-  margin-bottom: 20px;
-}
-
-.start-survey-container .btn-next {
-  margin-top: 10px;
-}
-
+.start-survey-container,
+.enqueteur-content,
 .survey-complete {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  width: 100%;
-  margin-top: 20px; /* Add some space at the top */
-  /* Prevent content jumping */
-  min-height: 200px;
-  justify-content: center;
+  justify-content: center; /* Add this */
+  flex-grow: 1; /* Add this */
 }
 
+.enqueteur-content h2,
+.start-survey-container h2,
 .survey-complete h2 {
-  margin-bottom: 20px;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Question Image Styles */
+.survey-question-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.logo {
+  max-width: 120px;
+  height: auto;
+  margin-top: 2rem;
+}
+
+.logo-center {
+  max-width: 100px;
+  margin: 1rem 0 1.5rem 0;
+}
+
+/* --- Form & Button Styles --- */
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  color: var(--primary-text);
+  background-color: var(--input-bg);
+  border: 1px solid var(--button-bg);
+  border-radius: var(--border-radius-md);
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-control::placeholder {
+  color: var(--text-light);
+  opacity: 0.7;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--secondary-accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.btn-next,
+.btn-option,
+.btn-return {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin-top: 0.75rem;
+}
+
+.btn-next {
+  background-color: var(--primary-accent);
+  color: var(--primary-text);
+  border-color: var(--primary-accent);
+}
+.btn-next:hover {
+  filter: brightness(1.1);
+}
+.btn-next:disabled {
+  background-color: var(--button-bg);
+  border-color: var(--button-bg);
+  color: var(--text-light);
+  cursor: not-allowed;
+  filter: none;
+}
+
+.btn-option {
+  background-color: var(--button-bg);
+  color: var(--text-light);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.btn-option:hover {
+  background-color: var(--button-hover-bg);
+  color: var(--primary-text);
+}
+
+.btn-return {
+  background-color: transparent;
+  color: var(--text-light);
+  text-decoration: underline;
+}
+.btn-return:hover {
+  color: var(--primary-text);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.75rem;
+  background-color: var(--button-bg);
+  color: var(--text-light);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+.checkbox-label:hover {
+  background-color: var(--button-hover-bg);
+  color: var(--primary-text);
+}
+.checkbox-input {
+  width: 1.25em;
+  height: 1.25em;
+  margin-right: 0.75rem;
+  accent-color: var(--secondary-accent);
+}
+
+/* --- Original Plan/Image Zoom Styles --- */
 .question-image-container {
   margin: 20px 0;
   text-align: center;
@@ -1784,7 +1550,6 @@ html, body {
   border-radius: 8px;
   cursor: pointer;
   transition: transform 0.2s ease;
-  /* Optimize for tablet performance */
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -1825,7 +1590,6 @@ html, body {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
-/* Image Zoom Modal Styles */
 .image-zoom-modal {
   position: fixed;
   top: 0;
@@ -1879,8 +1643,6 @@ html, body {
   transform: scale(1.1);
 }
 
-
-
 .zoom-image-wrapper {
   flex: 1;
   position: relative;
@@ -1908,143 +1670,83 @@ html, body {
   -webkit-backface-visibility: hidden;
 }
 
-/* Samsung Tablet optimizations */
 @media screen and (min-width: 768px) and (max-width: 1024px) {
-  .question-image {
-    max-height: 50vh;
-  }
-  
-  .question-image-container {
-    margin: 15px 0;
-  }
-  
-  .close-zoom {
-    width: 52px;
-    height: 52px;
-  }
-  
-  .zoom-hint {
-    bottom: 6px;
-    right: 6px;
-  }
-  
-  .zoom-icon {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .zoom-icon::after {
-    width: 5px;
-    height: 2px;
-    bottom: -3px;
-    right: -3px;
-  }
-  
-  .image-zoom-container {
-    width: 98%;
-    height: 98%;
-  }
+  .question-image { max-height: 50vh; }
+  .question-image-container { margin: 15px 0; }
+  .close-zoom { width: 52px; height: 52px; }
+  .zoom-hint { bottom: 6px; right: 6px; }
+  .zoom-icon { width: 18px; height: 18px; }
+  .zoom-icon::after { width: 5px; height: 2px; bottom: -3px; right: -3px; }
+  .image-zoom-container { width: 98%; height: 98%; }
 }
 
-/* Mobile optimizations */
 @media screen and (max-width: 767px) {
-  .question-image {
-    max-height: 40vh;
-  }
-  
-  .question-image-container {
-    margin: 10px 0;
-    border-radius: 5px;
-  }
-  
-  .close-zoom {
-    top: 12px;
-    right: 12px;
-    width: 40px;
-    height: 40px;
-  }
-  
-  .zoom-hint {
-    bottom: 4px;
-    right: 4px;
-  }
-  
-  .zoom-icon {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .zoom-icon::after {
-    width: 4px;
-    height: 1.5px;
-    bottom: -2px;
-    right: -2px;
-  }
+  .question-image { max-height: 40vh; }
+  .question-image-container { margin: 10px 0; border-radius: 5px; }
+  .close-zoom { top: 12px; right: 12px; width: 40px; height: 40px; }
+  .zoom-hint { bottom: 4px; right: 4px; }
+  .zoom-icon { width: 16px; height: 16px; }
+  .zoom-icon::after { width: 4px; height: 1.5px; bottom: -2px; right: -2px; }
 }
 
-/* Touch-specific styles for better Samsung tablet experience */
 @media (pointer: coarse) {
-  .question-image {
-    cursor: pointer;
-  }
-  
-  .zoom-image {
-    cursor: grab;
-  }
-  
-  .zoom-image:active {
-    cursor: grabbing;
-  }
-  
-  /* Larger touch targets for tablet */
-  .close-zoom {
-    min-width: 48px;
-    min-height: 48px;
-  }
-  
-  /* Disable text selection on touch devices */
-  .image-zoom-modal * {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-  
-  /* Improve scroll behavior */
-  .zoom-image-wrapper {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-  }
+  .question-image { cursor: pointer; }
+  .zoom-image { cursor: grab; }
+  .zoom-image:active { cursor: grabbing; }
+  .close-zoom { min-width: 48px; min-height: 48px; }
+  .image-zoom-modal * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .zoom-image-wrapper { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 }
-
-.input-container {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-}
-
-.form-control {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  border: 1px solid white;
-  background-color: #333;
-  color: white;
-  text-align: center;
-  font-size: 16px;
-  -webkit-appearance: none;
-  -webkit-border-radius: 8px;
-}
+/* --- End of Zoom Styles --- */
 
 .session-counter {
-  margin: 15px 0;
-  padding: 10px 15px;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 14px;
+  border-radius: var(--border-radius-md);
+  font-size: 0.9rem;
   text-align: center;
+  color: var(--text-light);
 }
+
+/* --- Autocomplete Styles --- */
+.input-container {
+  position: relative;
+}
+
+.autocomplete-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background-color: var(--card-bg);
+  border: 1px solid var(--button-bg);
+  border-radius: var(--border-radius-md);
+  list-style-type: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.autocomplete-results li {
+  padding: 0.9rem 1rem;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  border-bottom: 1px solid var(--button-bg);
+}
+
+.autocomplete-results li:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-results li:hover {
+  background-color: var(--secondary-accent);
+  color: var(--primary-text);
+}
+
+/* Remove any remaining old styles */
 </style>

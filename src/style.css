@@ -1,59 +1,50 @@
+:root {
+  --primary-bg: #2a3b63;
+  --primary-text: #ffffff;
+  --primary-accent: #43a047; /* A more vibrant, accessible green */
+  --secondary-accent: #3b82f6; /* A nice blue for secondary actions */
+  --button-bg: rgba(255, 255, 255, 0.08);
+  --button-hover-bg: rgba(255, 255, 255, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.2);
+  --card-bg: #1e293b; /* A slightly lighter card background */
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --text-light: #cbd5e1;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: 'Arial', sans-serif;
-  background-color: #2a3b63; /* Consistent background */
-  color: white;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--primary-bg);
+  color: var(--primary-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Full viewport height */
+  min-height: 100vh;
   position: relative;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .survey-content-area {
-  flex: 1; /* Takes up all available space, pushing admin section down */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* Allow content to shrink if needed */
-  overflow: auto; /* Allow scrolling within content area if needed */
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .admin-section {
-  flex-shrink: 0; /* Prevent the admin section from shrinking */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2a3b63; /* Same as main background */
-  padding: 20px 0;
-  margin: 0;
-  border: none;
-  position: relative;
-  z-index: 10;
-  /* Add a subtle top border to separate from content */
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Enhanced button positioning */
-.admin-section .btn-signin {
-  margin: 0; /* Remove default margin */
-  position: relative;
-}
-
-/* Ensure proper spacing on mobile */
-@media (max-width: 768px) {
-  .admin-section {
-    padding: 15px 0;
-  }
-}
-
-/* Handle very small screens */
-@media (max-width: 480px) {
-  .admin-section {
-    padding: 12px 0;
-  }
+  flex-shrink: 0;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }

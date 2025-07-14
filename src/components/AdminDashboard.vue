@@ -29,6 +29,7 @@
         <button class="close" @click="showAdminDashboard = false">
           &times;
         </button>
+        <img class="logo" src="../assets/Alycelogo.webp" alt="Logo Alyce" />
         <h2>Tableau de Bord Admin</h2>
         <div class="dashboard-content">
           <div class="dashboard-card total">
@@ -215,412 +216,187 @@ onMounted(() => {
 
 <style scoped>
 .admin-dashboard-root {
-  background-color: #2a3b63;
-  margin: 0;
-  padding: 0;
-  border: none;
-  outline: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo {
+  max-width: 100px;
+  margin: 0 auto 1.5rem auto;
+  display: block;
 }
 
 .btn-signin {
   display: flex;
-  width: auto;
-  max-width: 200px;
-  margin: 0 auto;
-  background: linear-gradient(135deg, rgba(45, 55, 72, 0.4) 0%, rgba(26, 32, 44, 0.6) 100%);
-  color: #9ca3af;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 400;
-  padding: 10px 20px;
-  border-radius: 20px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  text-transform: lowercase;
-  letter-spacing: 1px;
-  text-align: center;
-  opacity: 0.6;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-  min-height: 40px;
   align-items: center;
-  justify-content: center;
   gap: 8px;
+  background-color: var(--button-bg);
+  color: var(--text-light);
+  border: 1px solid transparent;
+  padding: 8px 16px;
+  border-radius: 999px; /* Pill shape */
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
 }
-
 .btn-signin:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.3) 100%);
-  color: #e5e7eb;
-  opacity: 0.9;
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.15);
-  transform: translateY(-2px);
+  background-color: var(--button-hover-bg);
+  color: var(--primary-text);
 }
 
-/* Connection Status Indicator for Admin Button */
-.btn-signin .connection-status {
+.connection-status {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: transparent;
-  transition: all 0.3s ease;
+  gap: 5px;
 }
-
-.btn-signin .status-dot {
-  width: 8px;
-  height: 8px;
+.status-dot {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #22c55e;
+  background-color: #ef4444; /* Offline Red */
+}
+.connection-status.online .status-dot {
+  background-color: #22c55e; /* Online Green */
   animation: pulse 2s infinite;
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
 }
-
-.btn-signin .connection-status.offline .status-dot {
-  background: #ef4444;
-  animation: none;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
-}
-
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  50% { box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
 }
 
-/* Keep the rest of the styles unchanged */
-.btn-download {
-  width: 100%;
-  padding: 12px;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-top: 10px;
-  box-shadow: none;
-}
-
-.btn-download:hover {
-  background-color: #2563eb;
+.pending-badge {
+  background-color: #f59e0b; /* Amber */
+  color: #1e293b;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  line-height: 1;
 }
 
 .modal {
   position: fixed;
-  z-index: 1000;
-  left: 0;
   top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
 .modal-content {
-  background-color: #2d3748;
-  color: white;
-  padding: 25px;
-  border-radius: 15px;
-  width: auto;
-  min-width: 300px;
-  max-width: 600px;
+  background-color: var(--card-bg);
+  padding: 2rem;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
   position: relative;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-  margin: 0 auto;
-}
-
-/* Override modal-content when it's also admin-dashboard */
-.modal-content.admin-dashboard {
-  padding: 15px !important; /* Slightly more padding for readability */
-  min-width: 280px !important;
-  max-width: 350px !important; /* Smaller max width for mobile */
-  width: 90vw !important; /* Responsive width */
-  height: auto !important; /* Force auto height */
-  min-height: auto !important; /* Force auto min height */
-}
-
-.modal-content.admin-dashboard h2 {
-  margin: 0 0 12px 0 !important; /* Slightly more margin */
-  font-size: 18px !important; /* Slightly larger title */
-}
-
-.modal-content.admin-dashboard .dashboard-content {
-  gap: 8px !important; /* Slightly more gap */
-  margin-bottom: 8px !important; /* Slightly more margin */
-}
-
-.modal-content.admin-dashboard .dashboard-card {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px;
-}
-
-.modal-content.admin-dashboard .dashboard-card h3 {
-  margin: 0 0 4px 0 !important; /* Slightly more margin */
-  font-size: 14px !important; /* Slightly larger font */
-}
-
-.modal-content.admin-dashboard .big-number {
-  font-size: 24px !important; /* Slightly larger number */
-  margin: 0 !important; /* Force no margin */
-}
-
-.modal-content.admin-dashboard .btn-download {
-  margin-top: 8px !important; /* Slightly more margin */
-  padding: 10px !important; /* Slightly more padding */
-  font-size: 14px !important; /* Slightly larger font */
-}
-
-.modal-content.admin-dashboard .dashboard-card ul {
-  max-height: 150px !important; /* Smaller max height for mobile */
-}
-
-.modal-content.admin-dashboard .dashboard-card li {
-  padding: 8px 0 !important; /* Slightly more padding */
-  font-size: 14px !important; /* Ensure readable font size */
-}
-
-/* Force signin modal to be compact */
-.modal-content.signin-modal {
-  padding: 15px !important;
-  width: auto !important;
-  min-width: 300px !important;
-  max-width: 320px !important;
-  height: auto !important;
-  min-height: auto !important;
+  border: 1px solid var(--button-bg);
 }
 
 .signin-modal {
-  max-width: 320px !important;
-  padding: 0 !important;
-}
-
-.signin-modal h2 {
-  margin: 0 0 15px 0 !important;
-  font-size: 18px !important;
-  text-align: center;
-  font-weight: normal;
-}
-
-.signin-modal .form-control,
-.signin-modal .btn-signin {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-  box-sizing: border-box !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
-.signin-modal .form-control {
-  margin-bottom: 15px !important;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: white;
-  padding: 12px 16px !important;
-  font-size: 14px !important;
-  border-radius: 8px !important;
-  height: 48px !important;
   display: flex;
-  align-items: center;
-}
-
-.signin-modal .form-control::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.signin-modal .btn-signin {
-  margin: 0 !important;
-  padding: 12px 16px !important;
-  background: linear-gradient(135deg, #68d391 0%, #4fd1c7 100%) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 8px !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease !important;
-  height: 48px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 3px 8px rgba(104, 211, 145, 0.3) !important;
-  letter-spacing: 0.5px !important;
-}
-
-.signin-modal .btn-signin:hover {
-  background: linear-gradient(135deg, #4fd1c7 0%, #68d391 100%) !important; /* Reverse gradient on hover */
-  transform: translateY(-2px) !important; /* Lift effect */
-  box-shadow: 0 6px 20px rgba(104, 211, 145, 0.4) !important; /* Enhanced glow */
-}
-
-.close {
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  width: 24px;
-  height: 24px;
-  opacity: 0.7;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: white;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.3s;
-}
-
-.close:hover {
-  opacity: 1;
+  flex-direction: column;
 }
 
 .admin-dashboard {
-  width: auto;
-  min-width: 500px;
-  max-width: 600px;
-  padding: 15px 20px;
-}
-
-.admin-dashboard h2 {
-  margin: 0 0 15px 0;
-  font-size: 20px;
   text-align: center;
-  font-weight: normal;
-  color: white;
 }
 
 .dashboard-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 8px;
+  margin: 2rem 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
 .dashboard-card {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px;
+  background-color: var(--primary-bg);
+  padding: 1.5rem;
+  border-radius: var(--border-radius-md);
 }
 
 .dashboard-card h3 {
-  margin: 0 0 4px 0;
-  font-size: 14px;
-  color: #3b82f6;
-  font-weight: normal;
+  margin-top: 0;
+  font-size: 1rem;
+  color: var(--text-light);
+  border-bottom: 1px solid var(--button-bg);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.dashboard-card.total {
-  text-align: center;
-  padding: 8px;
-}
-
-.big-number {
-  font-size: 28px;
+.dashboard-card p.big-number {
+  font-size: 3rem;
   font-weight: bold;
-  color: #68d391;
-  margin: 2px 0;
+  color: var(--primary-text);
+  margin: 0;
 }
 
 .dashboard-card ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
-  max-height: 200px;
-  overflow-y: auto;
+  text-align: left;
 }
 
 .dashboard-card li {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--button-bg);
 }
 
 .dashboard-card li:last-child {
   border-bottom: none;
 }
 
-.count {
-  font-weight: normal;
-  color: #68d391;
-}
-
-.pending-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #f59e0b;
-  color: white;
-  border-radius: 50%;
-  min-width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
+.dashboard-card li .count {
   font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  background-color: var(--primary-accent);
+  color: var(--primary-text);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-md);
+  font-size: 0.9rem;
 }
 
-/* Mobile responsive improvements */
-@media (max-width: 768px) {
-  .btn-signin {
-    max-width: 180px;
-    padding: 12px 18px;
-    font-size: 12px;
-  }
+.btn-download {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  background-color: var(--secondary-accent);
+  color: var(--primary-text);
+  border: 1px solid var(--secondary-accent);
 }
 
-@media (max-width: 480px) {
-  .btn-signin {
-    max-width: 160px;
-    padding: 10px 16px;
-    font-size: 11px;
-  }
+.btn-download:hover {
+  filter: brightness(1.1);
 }
 
-@media (max-width: 600px) {
-  .modal-content {
-    margin: 10px;
-    width: calc(100% - 20px);
-    max-height: 90vh;
-  }
+.close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-  .admin-dashboard {
-    padding: 15px;
-  }
-
-  .admin-dashboard h2 {
-    font-size: 20px;
-    margin-bottom: 15px;
-  }
-
-  .dashboard-card {
-    padding: 12px;
-  }
-
-  .big-number {
-    font-size: 36px;
-  }
-
-  .btn-download {
-    padding: 12px;
-    font-size: 14px;
-  }
+.form-control {
+  margin: 1rem 0;
+  width: 100%;
 }
 </style>

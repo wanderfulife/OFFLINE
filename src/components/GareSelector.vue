@@ -1,5 +1,5 @@
 <template>
-  <div class="form-group">
+  <div class="input-container">
     <input 
       class="form-control" 
       type="text" 
@@ -8,16 +8,16 @@
       @focus="showDropdown = true" 
       placeholder="Saisir ou rechercher une gare (train)" 
     />
-    <div v-if="showDropdown && filteredGares.length > 0" class="gare-dropdown autocomplete-results">
-      <div 
+    <ul v-if="showDropdown && filteredGares.length > 0" class="autocomplete-results">
+      <li 
         v-for="(gare, index) in filteredGares" 
         :key="gare.id || index" 
         @click="selectGare(gare)" 
-        class="gare-option autocomplete-option"
+        class="autocomplete-option"
       >
         {{ getGareName(gare) }} 
-      </div>
-    </div>
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -90,62 +90,5 @@ watch(() => props.modelValue, (newVal) => {
 </script>
 
 <style scoped>
-.form-group {
-  position: relative; /* For dropdown positioning */
-  margin-bottom: 15px;
-}
-
-.form-control {
-  width: 100%; 
-  max-width: 400px; 
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid white;
-  background-color: #333; 
-  color: white;
-  font-size: 16px;
-}
-
-/* Using shared styles from SurveyTemplate for consistency */
-.autocomplete-results {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  border: 1px solid #ccc;
-  max-height: 150px;
-  overflow-y: auto;
-  position: absolute; 
-  width: 100%; 
-  max-width: 400px; /* Match input width */
-  background-color: #fff; 
-  color: #333; 
-  z-index: 1000; 
-  border-radius: 0 0 5px 5px; 
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  top: 100%; /* Position below the input field */
-  left: 0;
-}
-
-.autocomplete-option {
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee; 
-}
-
-.autocomplete-option:last-child {
-  border-bottom: none;
-}
-
-.autocomplete-option:hover {
-  background-color: #f0f0f0; 
-}
-
-/* Fallback if SurveyTemplate styles aren't available */
-.gare-dropdown {
-  /* Styles defined above as .autocomplete-results */
-}
-
-.gare-option {
- /* Styles defined above as .autocomplete-option */
-}
+/* All scoped styles removed for global consistency */
 </style>
